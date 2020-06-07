@@ -55,7 +55,8 @@ void Scene::setOpenGLAttributes()
 bool Scene::init()
 {
     // Initialize SDL's Video subsystem
-    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+    {
         sdlDie("Unable to initialize SDL");
         return false;
     }
@@ -81,7 +82,8 @@ bool Scene::init()
       // Create our opengl context and attach it to our window
       this->mainContext = SDL_GL_CreateContext(mainWindow);
 
-    if (this->mainContext == 0) {
+    if (this->mainContext == 0)
+    {
         sdlDie("Unable to create the OpenGL context");
         return false;
     }
@@ -100,6 +102,12 @@ bool Scene::init()
 
     // Enable antialiasing
     glEnable(GL_MULTISAMPLE);
+
+    // Enable face culling
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    // clock wise
+    glFrontFace(GL_CW);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -130,7 +138,7 @@ Skybox Scene::createSkybox()
 
 void Scene::loop()
 {
-    unsigned int frameRate (1000 / 60); // 60 fps
+    unsigned int frameRate(1000 / 60); // 60 fps
     uint32 startLoop = 0, endLoop = 0, durationLoop = 0;
 
     glClearColor(0.0, 0.0, 0.0, 0.0); // black background
@@ -199,29 +207,29 @@ void Scene::loop()
         "assets/textures/box2_specular.png"
     );
     box.load();
-    box.setPosition(glm::vec3(8.0f, 8.0f, 8.0f));
+    box.setPosition(glm::vec3(8.0f, 14.0f, 8.0f));
 
     // Cube
     Cube cube(
         1.0,
-        "assets/shaders/mirror/mirror.vert",
-        "assets/shaders/mirror/mirror.frag"
+        "assets/shaders/depth/depth.vert",
+        "assets/shaders/depth/depth.frag"
     );
     cube.load();
-    cube.setPosition(glm::vec3(4.0f, 8.0f, 4.0f));
+    cube.setPosition(glm::vec3(2.0f, 8.0f, 2.0f));
 
     UVSphere sphere(
-        1.0,
-        64,
-        64,
+        20.0,
+        100,
+        100,
         "assets/shaders/mirror/mirror.vert",
         "assets/shaders/mirror/mirror.frag"
     );
     sphere.load();
-    sphere.setPosition(glm::vec3(4.0f, 9.0f, 4.0f));
+    sphere.setPosition(glm::vec3(25.0f, 20.0f, 4.0f));
 
     Chunk chunk(10, 10, "assets/shaders/chunk/chunk.vert", "assets/shaders/chunk/chunk.frag");
-    chunk.setPosition(0.0f, 20.0f, 0.0f);
+    chunk.setPosition(glm::vec3(-10.0f, 20.0f, 0.0f));
     chunk.fillRandom();
     chunk.load();
 
@@ -240,9 +248,9 @@ void Scene::loop()
     glm::mat4 view = glm::mat4(1.0f);
 
     Camera camera(
-        glm::vec3(15, 15, 15),
-        glm::vec3(0, 0, 0),
-        glm::vec3(0, 1, 0),
+        glm::vec3(15, 15, 15), // Camera is at (15,15,15), in World Space
+        glm::vec3(0, 0, 0), // and looks at the origin
+        glm::vec3(0, 1, 0), // Head is up (set to 0,-1,0 to look upside-down)
         0.1,
         0.1
     );
@@ -264,9 +272,6 @@ void Scene::loop()
             break;
 
         camera.move(this->input);
-
-        // Clear the screen
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camera.lookAt(view);
 
@@ -305,10 +310,10 @@ void Scene::loop()
 
         sphere.display(projection, view, model);
 
-        glDepthFunc(GL_LEQUAL);
+        // removes any translation,
+        // but keeps all rotation transformations so the user can still look around the scene.
         view = glm::mat4(glm::mat3(view));
         skybox.display(projection, view, model);
-        glDepthFunc(GL_LESS);
 
         SDL_GL_SwapWindow(this->mainWindow);
 
@@ -318,5 +323,8 @@ void Scene::loop()
         // force frame rate to 60fps
         if (durationLoop < frameRate)
             SDL_Delay(frameRate - durationLoop);
+
+        // Clear the screen
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 }

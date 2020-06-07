@@ -4,13 +4,13 @@ Floor::Floor(float size, const char* vertexPath, const char* fragmentPath, const
 : TexturedMesh(size, vertexPath, fragmentPath, diffusePath, specularPath)
 {
     this->vertices = {
-        size, -0.5f, size,
-        -size, -0.5f, size,
         -size, -0.5f, -size,
+        -size, -0.5f, size,
+        size, -0.5f, size,
 
         size, -0.5f,  size,
-        -size, -0.5f, -size,
-        size, -0.5f, -size
+        size, -0.5f, -size,
+        -size, -0.5f, -size
     };
 
     this->normals = {
@@ -24,12 +24,12 @@ Floor::Floor(float size, const char* vertexPath, const char* fragmentPath, const
     };
 
     this->textureCoord = {
-        size,  0.0f,
         0.0f,  0.0f,
-        0.0f, size,
+        0.0f,  size,
+        size, size,
 
-        size,  0.0f,
-        0.0f, size,
-        size, size
+        size,  size,
+        size, 0.0f,
+        0.0f, 0.0f
     };
 }

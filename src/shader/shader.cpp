@@ -21,7 +21,7 @@ Shader::~Shader()
 
 bool Shader::loadShaders()
 {
-    /* Destroy old shaders */
+    // Destroy old shaders
 
     if (glIsShader(this->vertexShaderID) == GL_TRUE)
         glDeleteShader(this->vertexShaderID);
@@ -32,7 +32,7 @@ bool Shader::loadShaders()
     if(glIsProgram(this->programID) == GL_TRUE)
         glDeleteProgram(this->programID);
 
-    /* Get content of each shader */
+    // Get content of each shader
 
     if (getFileContents(this->vertexPath, this->vertexSource) == false)
         return false;
@@ -40,7 +40,7 @@ bool Shader::loadShaders()
     if (getFileContents(this->fragmentPath, this->fragmentSource) == false)
         return false;
 
-    /* Compile shaders */
+    // Compile shaders
 
     if (compileShader(this->vertexShaderID, GL_VERTEX_SHADER, this->vertexSource.c_str()) == false)
         return false;
@@ -49,7 +49,8 @@ bool Shader::loadShaders()
         return false;
 
     // Link the program
-    linkProgram(this->vertexShaderID, this->fragmentShaderID);
+    if (linkProgram(this->vertexShaderID, this->fragmentShaderID) == false)
+        return false;
 
     return true;
 }
@@ -59,7 +60,106 @@ GLuint Shader::getProgramID() const
     return this->programID;
 }
 
+void Shader::activeShader()
+{
+    glUseProgram(this->programID);
+}
+
+void Shader::setBool(const std::string &name, bool value) const
+{
+    glUniform1i(glGetUniformLocation(this->programID, name.c_str()), (int) value);
+}
+
+void Shader::setInt(const std::string &name, int value) const
+{
+    glUniform1i(glGetUniformLocation(this->programID, name.c_str()), value);
+}
+
+void Shader::setFloat(const std::string &name, float value) const
+{
+    glUniform1f(glGetUniformLocation(this->programID, name.c_str()), value);
+}
+
+void Shader::setVec2(const std::string &name, const glm::vec2 &value) const
+{
+    glUniform2fv(glGetUniformLocation(this->programID, name.c_str()), 1, &value[0]);
+}
+
+void Shader::setVec2(const std::string &name, float x, float y) const
+{
+    glUniform2f(glGetUniformLocation(this->programID, name.c_str()), x, y);
+}
+
+void Shader::setVec3(const std::string &name, const glm::vec3 &value) const
+{
+    glUniform3fv(glGetUniformLocation(this->programID, name.c_str()), 1, &value[0]);
+}
+
+void Shader::setVec3(const std::string &name, float x, float y, float z) const
+{
+    glUniform3f(glGetUniformLocation(this->programID, name.c_str()), x, y, z);
+}
+
+void Shader::setVec4(const std::string &name, const glm::vec4 &value) const
+{
+    glUniform4fv(glGetUniformLocation(this->programID, name.c_str()), 1, &value[0]);
+}
+
+void Shader::setVec4(const std::string &name, float x, float y, float z, float w)
+{
+    glUniform4f(glGetUniformLocation(this->programID, name.c_str()), x, y, z, w);
+}
+
+void Shader::setMat2(const std::string &name, const glm::mat2 &mat) const
+{
+    glUniformMatrix2fv(glGetUniformLocation(this->programID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+
+void Shader::setMat3(const std::string &name, const glm::mat3 &mat) const
+{
+    glUniformMatrix3fv(glGetUniformLocation(this->programID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+
+void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
+{
+    glUniformMatrix4fv(glGetUniformLocation(this->programID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+
 /* Private methods */
+
+bool Shader::checkCompileErrors(GLuint id, std::string type)
+{
+    GLint isSuccess = 0;
+
+    // Error of compilation
+    if (type == "COMPILATION")
+        glGetShaderiv(id, GL_COMPILE_STATUS, &isSuccess);
+    // Error of linking
+    else
+        glGetProgramiv(id, GL_LINK_STATUS, &isSuccess);
+
+    // There is an error
+    if (isSuccess != GL_TRUE)
+    {
+        GLint errorSize = 0;
+        char* error = new char[errorSize + 1];
+        glGetShaderInfoLog(id, errorSize, &errorSize, error);
+        error[errorSize] = '\0';
+
+        // Display the error
+        std::cout << type << " : " << error << std::endl;
+
+        delete[] error;
+
+        glDeleteShader(this->vertexShaderID);
+        glDeleteShader(this->fragmentShaderID);
+        glDeleteProgram(this->programID);
+
+        return false;
+    }
+
+    return true;
+}
 
 bool Shader::compileShader(GLuint &shaderId, GLenum shaderType, const GLchar* source)
 {
@@ -73,33 +173,10 @@ bool Shader::compileShader(GLuint &shaderId, GLenum shaderType, const GLchar* so
     glCompileShader(shaderId);
 
     // Verification of the compilation
-    GLint isSuccess = 0;
-    glGetShaderiv(shaderId, GL_COMPILE_STATUS, &isSuccess);
-
-    // There is an error
-    if (isSuccess != GL_TRUE)
-    {
-
-        GLint errorSize = 0;
-        glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &errorSize);
-
-        char* error = new char[errorSize + 1];
-        glGetShaderInfoLog(shaderId, errorSize, &errorSize, error);
-        error[errorSize] = '\0';
-
-        // Display the error
-        std::cout << error << std::endl;
-
-        delete[] error;
-        glDeleteShader(shaderId);
-
-        return false;
-    }
-
-    return true;
+    return checkCompileErrors(shaderId, "COMPILATION");
 }
 
-void Shader::linkProgram(GLuint vertexShaderID, GLuint fragmentShaderID)
+bool Shader::linkProgram(GLuint vertexShaderID, GLuint fragmentShaderID)
 {
     // Creation of the program
     this->programID = glCreateProgram();
@@ -110,4 +187,11 @@ void Shader::linkProgram(GLuint vertexShaderID, GLuint fragmentShaderID)
 
     // Link the program
     glLinkProgram(this->programID);
+
+    // Delete the shaders as they're linked into our program now and no longer necessery
+    glDeleteShader(this->vertexShaderID);
+    glDeleteShader(this->fragmentShaderID);
+
+    // Verification of the linking
+    return checkCompileErrors(this->programID, "LINKING");
 }

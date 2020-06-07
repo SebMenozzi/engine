@@ -16,7 +16,8 @@ void main()
 {
     vec4 vectorOffset = vec4(worldPosition, 0.0);
     vec4 vertex = vec4(vertexPosition, 1.0);
-    fragmentNormal = mat3(transpose(inverse(model))) * vertexPosition;
+
+    fragmentNormal = mat3(transpose(inverse(model))) * vertexNormal;
     fragmentPosition = vec3(model * (vertex + vectorOffset));
-    gl_Position = projection * view * model * (vertex + vectorOffset);
+    gl_Position = projection * view * vec4(fragmentPosition, 1.0);
 }

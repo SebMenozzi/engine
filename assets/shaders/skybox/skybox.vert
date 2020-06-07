@@ -9,6 +9,6 @@ uniform mat4 view;
 
 void main()
 {
-  fragmentTextureCoords = vertexPosition;
-  gl_Position = projection * view * vec4(vertexPosition, 1.0);
+    fragmentTextureCoords = vertexPosition;
+    gl_Position = projection * view * vec4(vertexPosition, 1.0);
 }

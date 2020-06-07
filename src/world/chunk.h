@@ -18,8 +18,6 @@
 #include "../types.h"
 #include <vector>
 
-#define CHUNK_SIZE 1.0
-
 class Chunk
 {
 public:
@@ -27,7 +25,7 @@ public:
     ~Chunk();
     void setBlock(int x, int y, int z, int value);
     int getBlock(int x, int y, int z);
-    void setPosition(int x, int y, int z);
+    void setPosition(glm::vec3 position);
     void fillRandom();
     void load();
     void display(glm::mat4 &projection, glm::mat4 &view, glm::mat4 &model);

@@ -1,5 +1,7 @@
 #include "chunk.h"
 
+#define CHUNK_SIZE 1.0
+
 #ifndef BUFFER_OFFSET
     #define BUFFER_OFFSET(offset) ((char*) 0 + offset)
 #endif
@@ -55,11 +57,9 @@ bool Chunk::outOfBound(int x, int y, int z)
     return false;
 }
 
-void Chunk::setPosition(int x, int y, int z)
+void Chunk::setPosition(glm::vec3 position)
 {
-    this->position.x = x;
-    this->position.y = y;
-    this->position.z = z;
+    this->position = position;
 }
 
 void Chunk::fillRandom()

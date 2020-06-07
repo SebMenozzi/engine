@@ -65,7 +65,7 @@ void Camera::move(Input const &input)
         orientate(input.getXRel(), input.getYRel());
 
     // forward
-    if (input.getKey(SDL_SCANCODE_UP) || input.getKey(SDL_SCANCODE_W))
+    if (input.getKey(SDL_SCANCODE_UP) || input.getKey(SDL_SCANCODE_W))
     {
         this->position = this->position + this->orientation * this->velocity;
         this->targetPoint = this->position + this->orientation;

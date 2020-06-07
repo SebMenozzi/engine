@@ -3,13 +3,13 @@
 Plane::Plane(float size, const char* vertexPath, const char* fragmentPath): Mesh(size, vertexPath, fragmentPath)
 {
     this->vertices = {
-        size, -0.5f, size,
-        -size, -0.5f, size,
         -size, -0.5f, -size,
+        -size, -0.5f, size,
+        size, -0.5f, size,
 
         size, -0.5f,  size,
-        -size, -0.5f, -size,
-        size, -0.5f, -size
+        size, -0.5f, -size,
+        -size, -0.5f, -size
     };
 
     this->normals = {

@@ -17,10 +17,8 @@ void Skybox::load()
 
     glGenVertexArrays(1, &this->vaoID);
     glBindVertexArray(this->vaoID);
-
         glGenBuffers(1, &this->vboID);
         glBindBuffer(GL_ARRAY_BUFFER, this->vboID);
-
             int verticesSize = this->vertices.size() * sizeof(float);
 
             // Allocate to the GPU
@@ -33,7 +31,6 @@ void Skybox::load()
             glEnableVertexAttribArray(0);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-
     glBindVertexArray(0);
 }
 
@@ -45,6 +42,7 @@ void Skybox::display(glm::mat4 &projection, glm::mat4 &view, glm::mat4 &model)
     GLuint modelID = glGetUniformLocation(this->shader.getProgramID(), "model");
 
     glUseProgram(this->shader.getProgramID());
+        glFrontFace(GL_CW);
 
         glUniform3fv(worldPositionID, 1, glm::value_ptr(this->position));
         glUniformMatrix4fv(projectionID, 1, GL_FALSE, glm::value_ptr(projection));
@@ -60,5 +58,6 @@ void Skybox::display(glm::mat4 &projection, glm::mat4 &view, glm::mat4 &model)
         glDrawArrays(GL_TRIANGLES, 0, this->vertices.size() / 3);
         glDepthMask(GL_TRUE);
 
+        glFrontFace(GL_CCW);
     glUseProgram(0);
 }

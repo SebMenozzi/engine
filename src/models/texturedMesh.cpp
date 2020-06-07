@@ -224,8 +224,10 @@ void TexturedMesh::display(
         }
 
         // bind diffuse map
+        glEnable(GL_FRAMEBUFFER_SRGB);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, this->diffuse.getID());
+        glDisable(GL_FRAMEBUFFER_SRGB);
         // bind specular map
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, this->specular.getID());
