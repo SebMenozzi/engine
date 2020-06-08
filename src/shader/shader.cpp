@@ -60,7 +60,7 @@ GLuint Shader::getProgramID() const
     return this->programID;
 }
 
-void Shader::activeShader()
+void Shader::enableShader()
 {
     glUseProgram(this->programID);
 }

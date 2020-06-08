@@ -17,11 +17,6 @@ Input::Input()
         this->buttons[i] = false;
 }
 
-Input::~Input()
-{
-
-}
-
 void Input::updateEvents()
 {
     this->xRel = 0;
