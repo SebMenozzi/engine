@@ -1,5 +1,8 @@
+Main Page {#mainpage}
+=========
+
 # Basic OpenGL engine in C++
-This project was just about learning more about OpenGL and shaders :)
+This project was just about learning more about OpenGL and shaders :) \n
 All was basically learned from this website <a href="https://learnopengl.com/Introduction">learnopengl.com</a>, Check it out!
 
 Developped by <a href="https://twitter.com/SebMnzz">Sebastien Menozzi</a>
