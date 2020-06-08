@@ -2,11 +2,11 @@
 
 in vec3 fragmentTextureCoords;
 
-out vec4 color;
+out vec4 fragmentColor;
 
 uniform samplerCube skybox;
 
 void main()
 {
-    color = texture(skybox, fragmentTextureCoords);
+    fragmentColor = texture(skybox, fragmentTextureCoords);
 }

@@ -1,7 +1,7 @@
 #include "uvSphere.h"
 
 #ifndef BUFFER_OFFSET
-  #define BUFFER_OFFSET(offset) ((char*) 0 + offset)
+    #define BUFFER_OFFSET(offset) ((char*) 0 + offset)
 #endif
 
 const int MIN_SECTOR_COUNT = 3;
@@ -9,18 +9,10 @@ const int MIN_STACK_COUNT  = 2;
 
 // from http://www.songho.ca/opengl/gl_sphere.html
 
-UVSphere::UVSphere(float radius, int sectorCount, int stackCount, const char* vertexPath, const char* fragmentPath)
-: shader(vertexPath, fragmentPath)
+UVSphere::UVSphere(float radius, int sectorCount, int stackCount)
+    : Mesh()
 {
-    this->shader.loadShaders();
-
-    this->vaoID = 0;
-    this->vboID = 0;
     this->eboID = 0;
-
-    this->position.x = 0;
-    this->position.y = 0;
-    this->position.z = 0;
 
     this->radius = radius / 2;
     this->sectorCount = (sectorCount < MIN_SECTOR_COUNT) ? MIN_SECTOR_COUNT : sectorCount;
@@ -154,38 +146,12 @@ void UVSphere::load()
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(verticesSize + normalsSize));
         glEnableVertexAttribArray(2);
 
-        /*
-        // deactivate attrib arrays
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
-        glDisableVertexAttribArray(2);
-
-        // unbind VBOs
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        */
     glBindVertexArray(0);
 }
 
-void UVSphere::display(glm::mat4 &projection, glm::mat4 &view, glm::mat4 &model)
+void UVSphere::render()
 {
-    GLuint worldPositionID = glGetUniformLocation(this->shader.getProgramID(), "worldPosition");
-    GLuint projectionID = glGetUniformLocation(this->shader.getProgramID(), "projection");
-    GLuint viewID = glGetUniformLocation(this->shader.getProgramID(), "view");
-    GLuint modelID = glGetUniformLocation(this->shader.getProgramID(), "model");
-
-    glUseProgram(this->shader.getProgramID());
-        glUniform3fv(worldPositionID, 1, glm::value_ptr(this->position));
-        glUniformMatrix4fv(projectionID, 1, GL_FALSE, value_ptr(projection));
-        glUniformMatrix4fv(viewID, 1, GL_FALSE, value_ptr(view));
-        glUniformMatrix4fv(modelID, 1, GL_FALSE, value_ptr(model));
-
-        glBindVertexArray(this->vaoID);
-        glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, (void*) 0);
-    glUseProgram(0);
-}
-
-void UVSphere::setPosition(glm::vec3 position)
-{
-    this->position = position;
+    glBindVertexArray(this->vaoID);
+    glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, (void*) 0);
+    glBindVertexArray(0);
 }

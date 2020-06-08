@@ -24,7 +24,6 @@
 // cubes
 #include "../models/cube/cube.h"
 #include "../models/cube/box.h"
-#include "../models/trash/lightCube.h"
 // planes
 #include "../models/plane/plane.h"
 #include "../models/plane/floor.h"
@@ -56,7 +55,26 @@ private:
     Clock clock;
     Input input;
 
+    std::vector<DirLight> dirLights;
+    std::vector<PointLight> pointLights;
+    std::vector<SpotLight> spotLights;
+
+    Shader shadowShader;
+    Shader depthShader;
+    Shader skyboxShader;
+
     void sdlDie(const char* message);
     void setOpenGLAttributes();
     Skybox createSkybox();
+    DirLight createSunLight();
+    PointLight createPointLight(glm::vec3 position, glm::vec3 color);
+    void render(
+        glm::mat4 cameraView,
+        const Shader &shader,
+        Box &box1,
+        Box &box2,
+        UVSphere &sphere,
+        Floor &floor,
+        Skybox &skybox
+    );
 };

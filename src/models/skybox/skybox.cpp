@@ -4,8 +4,8 @@
   #define BUFFER_OFFSET(offset) ((char*) 0 + offset)
 #endif
 
-Skybox::Skybox(float size, const char* vertexPath, const char* fragmentPath, std::vector<std::string> faces)
-: Cube(size, vertexPath, fragmentPath), cubemap(faces)
+Skybox::Skybox(float size, std::vector<std::string> faces)
+: Cube(size), cubemap(faces)
 {
     this->cubemap.load();
 }
@@ -34,30 +34,16 @@ void Skybox::load()
     glBindVertexArray(0);
 }
 
-void Skybox::display(glm::mat4 &projection, glm::mat4 &view, glm::mat4 &model)
+void Skybox::render()
 {
-    GLuint worldPositionID = glGetUniformLocation(this->shader.getProgramID(), "worldPosition");
-    GLuint projectionID = glGetUniformLocation(this->shader.getProgramID(), "projection");
-    GLuint viewID = glGetUniformLocation(this->shader.getProgramID(), "view");
-    GLuint modelID = glGetUniformLocation(this->shader.getProgramID(), "model");
+    glFrontFace(GL_CW);
 
-    glUseProgram(this->shader.getProgramID());
-        glFrontFace(GL_CW);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubemap.getID());
 
-        glUniform3fv(worldPositionID, 1, glm::value_ptr(this->position));
-        glUniformMatrix4fv(projectionID, 1, GL_FALSE, glm::value_ptr(projection));
-        glUniformMatrix4fv(viewID, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(modelID, 1, GL_FALSE, glm::value_ptr(model));
+    glBindVertexArray(this->vaoID);
+    glDrawArrays(GL_TRIANGLES, 0, this->vertices.size() / 3);
+    glDepthMask(GL_TRUE);
 
-        glUniform1i(glGetUniformLocation(this->shader.getProgramID(), "skybox"), 0);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubemap.getID());
-
-        glBindVertexArray(this->vaoID);
-        glDrawArrays(GL_TRIANGLES, 0, this->vertices.size() / 3);
-        glDepthMask(GL_TRUE);
-
-        glFrontFace(GL_CCW);
-    glUseProgram(0);
+    glFrontFace(GL_CCW);
 }

@@ -5,5 +5,5 @@
 class Floor : public TexturedMesh
 {
 public:
-    Floor(float size, const char* vertexPath, const char* fragmentPath, const char* diffusePath, const char* specularPath);
+    Floor(float size, const char* diffusePath, const char* specularPath);
 };

@@ -22,7 +22,7 @@ public:
      * @param void
      * @return void
     */
-    Shader(const char* vertexPath, const char* fragmentPath);
+    Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr);
 
     /**
      * @brief Delete the vertex / fragment shaders and the program
@@ -32,11 +32,11 @@ public:
     ~Shader();
 
     /**
-     * @brief Load the shaders (Compilation and Linking)
+     * @brief Load the shader object (Compilation and Linking)
      * @param void
      * @return success
     */
-    bool loadShaders();
+    bool load();
 
     /**
      * @brief Retrieve the program ID
@@ -46,11 +46,11 @@ public:
     GLuint getProgramID() const;
 
     /**
-     * @brief Enable the shader
+     * @brief Use the shader
      * @param void
      * @return void
     */
-    void enableShader();
+    void use();
     void setBool(const std::string &name, bool value) const;
     void setInt(const std::string &name, int value) const;
     void setFloat(const std::string &name, float value) const;
@@ -67,15 +67,18 @@ public:
 private:
     GLuint vertexShaderID;
     GLuint fragmentShaderID;
+    GLuint geometryShaderID;
     GLuint programID;
 
     const char* vertexPath;
     const char* fragmentPath;
+    const char* geometryPath;
 
     std::string vertexSource;
     std::string fragmentSource;
+    std::string geometrySource;
 
     bool compileShader(GLuint &shaderId, GLenum shaderType, const GLchar* source);
-    bool linkProgram(GLuint vertexShaderID, GLuint fragmentShaderID);
-    bool checkCompileErrors(GLuint id, std::string type);
+    bool linkProgram();
+    bool checkCompileErrors(GLuint id, std::string type, const GLchar* source);
 };

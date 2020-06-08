@@ -1,18 +1,16 @@
 #version 330 core
+in vec4 fragmentPosition;
 
-out vec4 color;
-
-float near = 0.1;
-float far  = 10.0;
-
-float LinearizeDepth(float depth)
-{
-    float z = depth * 2.0 - 1.0; // back to NDC
-    return (2.0 * near * far) / (far + near - z * (far - near));
-}
+uniform vec3 lightPosition;
+uniform float farPlane;
 
 void main()
 {
-    float depth = LinearizeDepth(gl_FragCoord.z) / far; // divide by far for demonstration
-    color = vec4(vec3(depth), 1.0);
+    float lightDistance = length(fragmentPosition.xyz - lightPosition);
+
+    // map to [0;1] range by dividing by far_plane
+    lightDistance = lightDistance / farPlane;
+
+    // write this as modified depth
+    gl_FragDepth = lightDistance;
 }

@@ -5,5 +5,5 @@
 class Cube : public Mesh
 {
 public:
-    Cube(float size, const char* vertexPath, const char* fragmentPath);
+    Cube(float size);
 };

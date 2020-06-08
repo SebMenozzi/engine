@@ -15,7 +15,6 @@ set(SRC_ENGINE
   src/models/plane/floor.cpp
   src/models/skybox/skybox.cpp
   src/models/sphere/uvSphere.cpp
-  src/models/trash/lightCube.cpp
   src/models/mesh.cpp
   src/models/texturedMesh.cpp
   src/scene/scene.cpp

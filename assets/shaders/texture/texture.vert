@@ -9,17 +9,13 @@ out vec3 fragmentNormal;
 out vec2 fragmentTextureCoords;
 out vec2 fragmentViewPosition;
 
-uniform vec3 worldPosition;
-
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
 void main()
 {
-    vec4 vectorOffset = vec4(worldPosition, 0.0);
-    vec4 vertex = vec4(vertexPosition, 1.0);
-    fragmentPosition = vec3(model * (vertex + vectorOffset));
+    fragmentPosition = vec3(model * vec4(vertexPosition, 1.0));
     fragmentTextureCoords = vertexTextureCoords;
     fragmentNormal = mat3(transpose(inverse(model))) * vertexNormal;
     gl_Position = projection * view * vec4(fragmentPosition, 1.0);

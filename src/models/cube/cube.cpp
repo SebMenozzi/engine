@@ -1,6 +1,7 @@
 #include "cube.h"
 
-Cube::Cube(float size, const char* vertexPath, const char* fragmentPath): Mesh(size, vertexPath, fragmentPath)
+Cube::Cube(float size)
+    : Mesh()
 {
     size /= 2;
 

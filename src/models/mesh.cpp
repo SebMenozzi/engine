@@ -1,19 +1,13 @@
 #include "mesh.h"
 
 #ifndef BUFFER_OFFSET
-  #define BUFFER_OFFSET(offset) ((char*) 0 + offset)
+    #define BUFFER_OFFSET(offset) ((char*) 0 + offset)
 #endif
 
-Mesh::Mesh(float size, const char* vertexPath, const char* fragmentPath): shader(vertexPath, fragmentPath)
+Mesh::Mesh()
 {
-    this->shader.loadShaders();
-
     this->vaoID = 0;
     this->vboID = 0;
-
-    this->position.x = 0;
-    this->position.y = 0;
-    this->position.z = 0;
 }
 
 Mesh::~Mesh()
@@ -57,25 +51,9 @@ void Mesh::load()
     glBindVertexArray(0);
 }
 
-void Mesh::display(glm::mat4 &projection, glm::mat4 &view, glm::mat4 &model)
+void Mesh::render()
 {
-    GLuint worldPositionID = glGetUniformLocation(this->shader.getProgramID(), "worldPosition");
-    GLuint projectionID = glGetUniformLocation(this->shader.getProgramID(), "projection");
-    GLuint viewID = glGetUniformLocation(this->shader.getProgramID(), "view");
-    GLuint modelID = glGetUniformLocation(this->shader.getProgramID(), "model");
-
-    glUseProgram(this->shader.getProgramID());
-        glUniform3fv(worldPositionID, 1, glm::value_ptr(this->position));
-        glUniformMatrix4fv(projectionID, 1, GL_FALSE, value_ptr(projection));
-        glUniformMatrix4fv(viewID, 1, GL_FALSE, value_ptr(view));
-        glUniformMatrix4fv(modelID, 1, GL_FALSE, value_ptr(model));
-
-        glBindVertexArray(this->vaoID);
-        glDrawArrays(GL_TRIANGLES, 0, this->vertices.size() / 3);
-    glUseProgram(0);
-}
-
-void Mesh::setPosition(glm::vec3 position)
-{
-    this->position = position;
+    glBindVertexArray(this->vaoID);
+    glDrawArrays(GL_TRIANGLES, 0, this->vertices.size() / 3);
+    glBindVertexArray(0);
 }

@@ -7,7 +7,7 @@
 Heightmap::Heightmap(int size, float step, const char* vertexPath, const char* fragmentPath)
     : shader(vertexPath, fragmentPath)
 {
-    this->shader.loadShaders();
+    this->shader.load();
 
     this->size = size;
     this->step = step;

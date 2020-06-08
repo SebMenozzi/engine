@@ -5,5 +5,5 @@
 class Box : public TexturedMesh
 {
 public:
-    Box(float size, const char* vertexPath, const char* fragmentPath, const char* diffusePath, const char* specularPath);
+    Box(float size, const char* diffusePath, const char* specularPath);
 };

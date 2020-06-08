@@ -10,7 +10,7 @@ Chunk::Chunk(int size, int height, const char* vertexPath, const char* fragmentP
     : data(size * CHUNK_SIZE, height * CHUNK_SIZE, size * CHUNK_SIZE),
       shader(vertexPath, fragmentPath)
 {
-    this->shader.loadShaders();
+    this->shader.load();
     this->size = size;
     this->height = height;
 

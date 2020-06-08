@@ -1,7 +1,7 @@
 #include "box.h"
 
-Box::Box(float size, const char* vertexPath, const char* fragmentPath, const char* diffusePath, const char* specularPath)
-: TexturedMesh(size, vertexPath, fragmentPath, diffusePath, specularPath)
+Box::Box(float size, const char* diffusePath, const char* specularPath)
+    : TexturedMesh(diffusePath, specularPath)
 {
     size /= 2;
 

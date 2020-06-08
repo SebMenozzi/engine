@@ -5,5 +5,5 @@
 class Plane : public Mesh
 {
 public:
-    Plane(float size, const char* vertexPath, const char* fragmentPath);
+    Plane(float size);
 };

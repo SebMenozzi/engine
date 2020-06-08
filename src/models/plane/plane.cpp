@@ -1,6 +1,7 @@
 #include "plane.h"
 
-Plane::Plane(float size, const char* vertexPath, const char* fragmentPath): Mesh(size, vertexPath, fragmentPath)
+Plane::Plane(float size)
+    : Mesh()
 {
     this->vertices = {
         -size, -0.5f, -size,

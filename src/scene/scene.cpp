@@ -1,6 +1,10 @@
 #include "scene.h"
 
-Scene::Scene(std::string title, int width, int height) : input()
+Scene::Scene(std::string title, int width, int height)
+    : input(),
+    shadowShader("assets/shaders/shadow/shadow.vert", "assets/shaders/shadow/shadow.frag"),
+    depthShader("assets/shaders/depth/depth.vert", "assets/shaders/depth/depth.frag", "assets/shaders/depth/depth.gs"),
+    skyboxShader("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag")
 {
     this->title = title;
     this->width = width;
@@ -106,7 +110,7 @@ bool Scene::init()
     // Enable face culling
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
-    // clock wise
+    // clock wisedepthMap
     glFrontFace(GL_CW);
 
     glEnable(GL_BLEND);
@@ -114,6 +118,87 @@ bool Scene::init()
 
     return true;
 }
+
+DirLight Scene::createSunLight()
+{
+    DirLight sunLight;
+    sunLight.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+    sunLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
+    sunLight.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
+    sunLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
+
+    return sunLight;
+}
+
+PointLight Scene::createPointLight(glm::vec3 position, glm::vec3 color)
+{
+    PointLight pointLight;
+    pointLight.position = position;
+    pointLight.ambient = glm::vec3(0.0f, 0.0f, 0.0f);
+    pointLight.diffuse = color;
+    pointLight.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    return pointLight;
+}
+
+void Scene::render(
+    glm::mat4 cameraView,
+    const Shader &shader,
+    Box &box1,
+    Box &box2,
+    UVSphere &sphere,
+    Floor &floor,
+    Skybox &skybox
+)
+{
+    glm::vec3 originPosition = glm::vec3(8.0f, 8.0f, 8.0f);
+
+    // Model matrix
+    glm::mat4 model = glm::mat4(1.0f);
+
+    model = glm::translate(model, originPosition);
+    shader.setMat4("model", model);
+    box1.render();
+
+    float lightX = sin(this->clock.getTicks() * 0.001);
+    float lightY = 2.0f;
+    float lightZ = cos(this->clock.getTicks() * 0.001);
+
+    glm::vec3 box2Translation = glm::vec3(
+        2.0f * lightX,
+        lightY,
+        2.0f * lightZ
+    );
+
+    glm::vec3 sphereTranslation = glm::vec3(
+        8.0f * lightX,
+        lightY,
+        8.0f * lightZ
+    );
+
+    glm::vec3 newBox2Position = originPosition + box2Translation;
+    glm::vec3 newSpherePosition = originPosition + sphereTranslation;
+
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, newBox2Position);
+    shader.setMat4("model", model);
+    box2.render();
+
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, newSpherePosition);
+    shader.setMat4("model", model);
+    sphere.render();
+
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, originPosition);
+    shader.setMat4("model", model);
+    floor.render();
+
+    this->skyboxShader.use();
+    this->skyboxShader.setMat4("view", glm::mat4(glm::mat3(cameraView))); // removes any translation
+    skybox.render();
+}
+
 
 Skybox Scene::createSkybox()
 {
@@ -126,12 +211,8 @@ Skybox Scene::createSkybox()
         "assets/textures/skybox/back.jpg",
     };
 
-    Skybox skybox(
-        100,
-        "assets/shaders/skybox/skybox.vert",
-        "assets/shaders/skybox/skybox.frag",
-        faces
-    );
+    Skybox skybox(100, faces);
+    skybox.load();
 
     return skybox;
 }
@@ -141,97 +222,31 @@ void Scene::loop()
     unsigned int frameRate(1000 / 60); // 60 fps
     uint32 startLoop = 0, endLoop = 0, durationLoop = 0;
 
-    glClearColor(0.0, 0.0, 0.0, 0.0); // black background
+    // create skybox
+    Skybox skybox = createSkybox();
 
-    auto skybox = createSkybox();
-    skybox.load();
-
-    std::vector<DirLight> dirLights;
-    std::vector<PointLight> pointLights;
-    std::vector<SpotLight> spotLights;
-
-    // Sun light
-    DirLight sunLight;
-    sunLight.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
-    sunLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
-    sunLight.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
-    sunLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
-    dirLights.push_back(sunLight);
-
-    glm::vec3 lightPosition = glm::vec3(8.0f, 6.0f, 8.0f);
+    DirLight sunLight = this->createSunLight();
+    //this->dirLights.push_back(sunLight);
 
     // Blue Light
-    PointLight blueLight;
-    blueLight.position = lightPosition;
-    blueLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
-    blueLight.diffuse = glm::vec3(0.0f, 0.0f, 1.0f);
-    blueLight.specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    pointLights.push_back(blueLight);
-
-    LightCube blueLightCube(
-        0.5,
-        "assets/shaders/light/light.vert",
-        "assets/shaders/light/light.frag",
-        blueLight.diffuse
-    );
-    blueLightCube.load();
-
-    // Red Light
-    PointLight redLight;
-    redLight.position = lightPosition;
-    redLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
-    redLight.diffuse = glm::vec3(1.0f, 0.0f, 0.0f);
-    redLight.specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    pointLights.push_back(redLight);
-
-    LightCube redLightCube(0.5, "assets/shaders/light/light.vert", "assets/shaders/light/light.frag", redLight.diffuse);
-    redLightCube.load();
+    PointLight blueLight = this->createPointLight(glm::vec3(0.0f, 10.0f, 8.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    this->pointLights.push_back(blueLight);
+    PointLight redLight = this->createPointLight(glm::vec3(8.0f, 10.0f, 8.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    this->pointLights.push_back(redLight);
 
     // Floor
-    Floor floor(
-        20.0,
-        "assets/shaders/texture/texture.vert",
-        "assets/shaders/texture/texture.frag",
-        "assets/textures/wood.png",
-        "assets/textures/wood.png"
-    );
+    Floor floor(50.0, "assets/textures/wood.png", "assets/textures/wood.png");
     floor.load();
-    floor.setPosition(glm::vec3(8.0f, 8.0f, 8.0f));
 
-    // Box
-    Box box(
-        1.0,
-        "assets/shaders/texture/texture.vert",
-        "assets/shaders/texture/texture.frag",
-        "assets/textures/box2.png",
-        "assets/textures/box2_specular.png"
-    );
-    box.load();
-    box.setPosition(glm::vec3(8.0f, 14.0f, 8.0f));
+    Box box1(1.0, "assets/textures/box2.png", "assets/textures/box2_specular.png");
+    box1.load();
 
-    // Cube
-    Cube cube(
-        1.0,
-        "assets/shaders/depth/depth.vert",
-        "assets/shaders/depth/depth.frag"
-    );
-    cube.load();
-    cube.setPosition(glm::vec3(2.0f, 8.0f, 2.0f));
+    Box box2(1.0, "assets/textures/box2.png", "assets/textures/box2_specular.png");
+    box2.load();
 
-    UVSphere sphere(
-        20.0,
-        100,
-        100,
-        "assets/shaders/mirror/mirror.vert",
-        "assets/shaders/mirror/mirror.frag"
-    );
+    // Sphere
+    UVSphere sphere(4.0, 20.0, 30.0);
     sphere.load();
-    sphere.setPosition(glm::vec3(25.0f, 20.0f, 4.0f));
-
-    Chunk chunk(10, 10, "assets/shaders/chunk/chunk.vert", "assets/shaders/chunk/chunk.frag");
-    chunk.setPosition(glm::vec3(-10.0f, 20.0f, 0.0f));
-    chunk.fillRandom();
-    chunk.load();
 
     // Projection matrix
     glm::mat4 projection = glm::perspective(
@@ -241,11 +256,8 @@ void Scene::loop()
         100.0f
     );
 
-    // Model matrix
-    glm::mat4 model = glm::mat4(1.0f);
-
     // View Matrix
-    glm::mat4 view = glm::mat4(1.0f);
+    glm::mat4 cameraView = glm::mat4(1.0f);
 
     Camera camera(
         glm::vec3(15, 15, 15), // Camera is at (15,15,15), in World Space
@@ -255,16 +267,62 @@ void Scene::loop()
         0.1
     );
 
+    this->shadowShader.load();
+    this->shadowShader.use();
+    this->shadowShader.setMat4("projection", projection);
+    this->shadowShader.setInt("diffuseTexture", 0);
+    this->shadowShader.setInt("depthMap", 1);
+
+    this->depthShader.load();
+    this->depthShader.use();
+
+    this->skyboxShader.load();
+    this->skyboxShader.use();
+    this->skyboxShader.setMat4("projection", projection);
+    this->skyboxShader.setInt("skybox", 0);
+
     this->input.displayCursor(false);
     this->input.catchCursor(true);
 
+    // configure depth map FBO
+    const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+    unsigned int depthMapFBO;
+    glGenFramebuffers(1, &depthMapFBO);
+    // create depth cubemap texture
+    unsigned int depthCubemap;
+    glGenTextures(1, &depthCubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+    for (unsigned int i = 0; i < 6; ++i)
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    // attach depth texture as FBO's depth buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    /*
+    Shader textureShader("assets/shaders/texture/texture.vert", "assets/shaders/texture/texture.frag");
+    textureShader.load();
+    textureShader.use();
+    textureShader.setMat4("projection", projection);
+    textureShader.setInt("material.diffuse", 0);
+    textureShader.setInt("material.specular", 1);
+    textureShader.setFloat("material.shininess", 32.0f);
+    */
+
+    glm::vec3 lightPosition = glm::vec3(8.0f, 20.0f, 8.0f);
+
     while (!this->input.isQuit())
     {
-
         startLoop = this->clock.getTicks();
 
-        /* Handle events */
-
+        // listen to SDL events
         this->input.updateEvents();
 
         // press escape to quit
@@ -273,47 +331,113 @@ void Scene::loop()
 
         camera.move(this->input);
 
-        camera.lookAt(view);
+        // update camera view (by reference)
+        camera.lookAt(cameraView);
 
-        chunk.display(projection, view, model);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // set light position
-        float lightX = sin(this->clock.getTicks() * 0.001);
-        float lightY = 2.0f;
-        float lightZ = cos(this->clock.getTicks() * 0.001);
+        // Create depth cubemap transformation matrices
+        float nearPlane = 1.0f;
+        float farPlane  = 25.0f;
+        glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), (float) SHADOW_WIDTH / (float) SHADOW_HEIGHT, nearPlane, farPlane);
+        std::vector<glm::mat4> shadowTransforms;
+        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPosition, lightPosition + glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
+        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPosition, lightPosition + glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
+        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPosition, lightPosition + glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)));
+        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPosition, lightPosition + glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)));
+        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPosition, lightPosition + glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
+        shadowTransforms.push_back(shadowProj * glm::lookAt(lightPosition, lightPosition + glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
 
-        glm::vec3 blueLightTranslation = glm::vec3(
-            2.0f * lightX,
-            lightY,
-            2.0f * lightZ
+        // Render scene to depth cubemap
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            this->depthShader.use();
+            for (unsigned int i = 0; i < 6; ++i)
+                this->depthShader.setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+            this->depthShader.setFloat("farPlane", farPlane);
+            this->depthShader.setVec3("lightPosition", lightPosition);
+            this->render(
+                cameraView,
+                this->depthShader,
+                box1,
+                box2,
+                sphere,
+                floor,
+                skybox
+            );
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glViewport(0, 0, this->width * 2, this->height * 2);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        this->shadowShader.use();
+        this->shadowShader.setMat4("view", cameraView);
+        this->shadowShader.setVec3("viewPosition", camera.getPosition());
+        this->shadowShader.setVec3("lightPosition", lightPosition);
+        this->shadowShader.setInt("shadows", true);
+        this->shadowShader.setFloat("farPlane", farPlane);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+
+        this->render(
+            cameraView,
+            this->shadowShader,
+            box1,
+            box2,
+            sphere,
+            floor,
+            skybox
         );
 
-        glm::vec3 redLightTranslation = glm::vec3(
-            3.0f * lightX,
-            lightY,
-            3.0f * lightZ
-        );
+        /*
+        textureShader.use();
 
-        pointLights[0].position = lightPosition + blueLightTranslation;
-        pointLights[1].position = lightPosition + redLightTranslation;
+        textureShader.setInt("nbDirLights", this->dirLights.size());
+        textureShader.setInt("nbPointLights", this->pointLights.size());
+        textureShader.setInt("nbSpotLights", this->spotLights.size());
 
-        blueLightCube.setPosition(lightPosition + blueLightTranslation);
-        redLightCube.setPosition(lightPosition + redLightTranslation);
+        for (int i = 0; i < this->dirLights.size(); ++i)
+        {
+            std::string number = std::to_string(i); // convert i to string
+            textureShader.setVec3("dirLights[" + number + "].direction", this->dirLights[i].direction);
+            textureShader.setVec3("dirLights[" + number + "].ambient", this->dirLights[i].ambient);
+            textureShader.setVec3("dirLights[" + number + "].diffuse", this->dirLights[i].diffuse);
+            textureShader.setVec3("dirLights[" + number + "].specular", this->dirLights[i].specular);
+        }
 
-        blueLightCube.display(projection, view, model);
-        redLightCube.display(projection, view, model);
+        for (int i = 0; i < this->pointLights.size(); ++i)
+        {
+            std::string number = std::to_string(i); // convert i to string
+            textureShader.setVec3("pointLights[" + number + "].position", this->pointLights[i].position);
+            textureShader.setVec3("pointLights[" + number + "].ambient", this->pointLights[i].ambient);
+            textureShader.setVec3("pointLights[" + number + "].diffuse", this->pointLights[i].diffuse);
+            textureShader.setVec3("pointLights[" + number + "].specular", 1.0, 1.0, 1.0);
+            textureShader.setFloat("pointLights[" + number + "].constant", 1.0);
+            textureShader.setFloat("pointLights[" + number + "].linear", 0.09f);
+            textureShader.setFloat("pointLights[" + number + "].quadratic", 0.032f);
+        }
 
-        floor.display(projection, view, model, camera, dirLights, pointLights, spotLights);
-        box.display(projection, view, model, camera, dirLights, pointLights, spotLights);
+        for (int i = 0; i < this->spotLights.size(); ++i)
+        {
+            std::string number = std::to_string(i); // convert i to string
+            textureShader.setVec3("spotLights[" + number + "].position", this->spotLights[i].position);
+            textureShader.setVec3("spotLights[" + number + "].direction", this->spotLights[i].direction);
+            textureShader.setVec3("spotLights[" + number + "].ambient", this->spotLights[i].ambient);
+            textureShader.setVec3("spotLights[" + number + "].diffuse", this->spotLights[i].diffuse);
+            textureShader.setVec3("spotLights[" + number + "].specular", 0.0f, 1.0f, 0.0f);
+            textureShader.setFloat("spotLights[" + number + "].constant", 1.0);
+            textureShader.setFloat("spotLights[" + number + "].linear", 0.07f);
+            textureShader.setFloat("spotLights[" + number + "].quadratic", 0.017f);
+            textureShader.setFloat("spotLights[" + number + "].cutOff", glm::cos(glm::radians(7.0f)));
+            textureShader.setFloat("spotLights[" + number + "].outerCutOff", glm::cos(glm::radians(10.0f)));
+        }
 
-        cube.display(projection, view, model);
-
-        sphere.display(projection, view, model);
-
-        // removes any translation,
-        // but keeps all rotation transformations so the user can still look around the scene.
-        view = glm::mat4(glm::mat3(view));
-        skybox.display(projection, view, model);
+        textureShader.setMat4("view", cameraView);
+        textureShader.setVec3("viewPosition", camera.getPosition());
+        */
 
         SDL_GL_SwapWindow(this->mainWindow);
 
@@ -323,8 +447,5 @@ void Scene::loop()
         // force frame rate to 60fps
         if (durationLoop < frameRate)
             SDL_Delay(frameRate - durationLoop);
-
-        // Clear the screen
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 }
