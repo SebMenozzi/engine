@@ -1,80 +1,56 @@
 #pragma once
 
+#include <iostream>
+#include <string>
 #ifdef __APPLE__
     #include <OpenGL/gl3.h>
 #else
     #include <GL3/gl.h>
 #endif
-
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#include <iostream>
-#include <string>
-#include "../clock/clock.h"
-#include "../input/input.h"
-#include "../camera/camera.h"
-#include "../texture/texture.h"
-#include "../types.h"
-// cubes
-#include "../models/cube/cube.h"
-#include "../models/cube/box.h"
-// planes
-#include "../models/plane/plane.h"
-#include "../models/plane/floor.h"
-// world
-#include "../world/chunk.h"
-#include "../world/heightmap.h"
+#include "clock.h"
+#include "input.h"
+#include "camera.h"
+#include "texture.h"
+#include "shader.h"
+#include "types.h"
 
-#include "../models/skybox/skybox.h"
+#include "cube.h"
+#include "plane.h"
+#include "skybox.h"
+#include "uv_sphere.h"
 
-#include "../models/sphere/uvSphere.h"
-
-class Scene
+namespace scene
 {
-public:
-    Scene(std::string title, int width, int height);
-    ~Scene();
+    class Scene
+    {
+    public:
+        Scene(std::string title, int width, int height);
+        ~Scene();
 
-    bool init();
-    void loop();
+        bool init();
+        void loop();
 
-private:
-    std::string title;
-    int width;
-    int height;
+    private:
+        std::string title_;
+        int width_;
+        int height_;
 
-    SDL_Window* mainWindow;
-    SDL_GLContext mainContext;
+        SDL_Window* mainWindow_;
+        SDL_GLContext mainContext_;
 
-    Clock clock;
-    Input input;
+        utils::Clock clock_;
+        input::Input input_;
 
-    std::vector<DirLight> dirLights;
-    std::vector<PointLight> pointLights;
-    std::vector<SpotLight> spotLights;
+        shader::Shader basicShader_;
+        shader::Shader skyboxShader_;
 
-    Shader shadowShader;
-    Shader depthShader;
-    Shader skyboxShader;
-
-    void sdlDie(const char* message);
-    void setOpenGLAttributes();
-    Skybox createSkybox();
-    DirLight createSunLight();
-    PointLight createPointLight(glm::vec3 position, glm::vec3 color);
-    void render(
-        glm::mat4 cameraView,
-        const Shader &shader,
-        Box &box1,
-        Box &box2,
-        UVSphere &sphere,
-        Floor &floor,
-        Skybox &skybox
-    );
-};
+        void sdlDie_(const char* message);
+        void setOpenGLAttributes_();
+        mesh::Skybox createSkybox_();
+    };
+}

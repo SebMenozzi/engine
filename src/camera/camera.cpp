@@ -1,165 +1,158 @@
 #include "camera.h"
 
-Camera::Camera(glm::vec3 position, glm::vec3 targetPoint, glm::vec3 verticalAxis, float sensitivity, float velocity)
+namespace camera
 {
-    this->phi = 0.0;
-    this->theta = 0.0;
-    this->position = position;
-    this->targetPoint = targetPoint;
-    this->verticalAxis = verticalAxis;
+    // MARK: - Public
 
-    this->sensitivity = sensitivity;
-    this->velocity = velocity;
-
-    setTargetPoint(targetPoint);
-}
-
-Camera::~Camera()
-{
-
-}
-
-void Camera::orientate(int xRel, int yRel)
-{
-    this->phi += -yRel * this->sensitivity;
-    this->theta += -xRel * this->sensitivity;
-
-    // Limit the phi angle
-    if(this->phi > 89.0)
-        this->phi = 89.0;
-    else if(this->phi < -89.0)
-        this->phi = -89.0;
-
-    // Conversion to radian
-    float phiRadian = this->phi * M_PI / 180;
-    float thetaRadian = this->theta * M_PI / 180;
-
-    if (this->verticalAxis.x == 1.0)
+    Camera::Camera(
+        glm::vec3 position,
+        glm::vec3 targetPosition,
+        glm::vec3 verticalAxis,
+        float sensitivity,
+        float velocity
+    ): 
+        horizontalAngle_(0.0),
+        verticalAngle_(0.0),
+        verticalAxis_(verticalAxis),
+        position_(position),
+        targetPosition_(targetPosition),
+        sensitivity_(sensitivity),
+        velocity_(velocity)
     {
-        this->orientation.x = sin(phiRadian);
-        this->orientation.y = cos(phiRadian) * cos(thetaRadian);
-        this->orientation.z = cos(phiRadian) * sin(thetaRadian);
-    }
-    else if(this->verticalAxis.y == 1.0)
-    {
-        this->orientation.x = cos(phiRadian) * sin(thetaRadian);
-        this->orientation.y = sin(phiRadian);
-        this->orientation.z = cos(phiRadian) * cos(thetaRadian);
-    }
-    else
-    {
-        this->orientation.x = cos(phiRadian) * cos(thetaRadian);
-        this->orientation.y = cos(phiRadian) * sin(thetaRadian);
-        this->orientation.z = sin(phiRadian);
+        init_();
     }
 
-    this->lateralMovement = glm::cross(this->verticalAxis, this->orientation);
-    this->lateralMovement = glm::normalize(this->lateralMovement);
+    Camera::~Camera() {}
 
-    this->targetPoint = this->position + this->orientation;
-}
-
-void Camera::move(Input const &input)
-{
-    if (input.isCursorMoving())
-        orientate(input.getXRel(), input.getYRel());
-
-    // forward
-    if (input.getKey(SDL_SCANCODE_UP) || input.getKey(SDL_SCANCODE_W))
+    void Camera::move(input::Input const &input)
     {
-        this->position = this->position + this->orientation * this->velocity;
-        this->targetPoint = this->position + this->orientation;
+        if (input.isCursorMoving())
+            orientate_(input.getXRel(), input.getYRel());
+
+        // Forward
+        if (input.getKey(SDL_SCANCODE_UP) || input.getKey(SDL_SCANCODE_W))
+            position_ = position_ + direction_ * velocity_;
+
+        // Backward
+        if (input.getKey(SDL_SCANCODE_DOWN) || input.getKey(SDL_SCANCODE_S))
+            position_ = position_ - direction_ * velocity_;
+
+        // Left
+        if (input.getKey(SDL_SCANCODE_LEFT) || input.getKey(SDL_SCANCODE_A))
+            position_ = position_ + lateralDirection_ * velocity_;
+
+        // Right
+        if (input.getKey(SDL_SCANCODE_RIGHT) || input.getKey(SDL_SCANCODE_D))
+            position_ = position_ - lateralDirection_ * velocity_;
+
+        targetPosition_ = position_ + direction_;
     }
 
-    // backward
-    if (input.getKey(SDL_SCANCODE_DOWN) || input.getKey(SDL_SCANCODE_S))
+    void Camera::lookAt(glm::mat4 &view)
     {
-        this->position = this->position - this->orientation * this->velocity;
-        this->targetPoint = this->position + this->orientation;
+        view = glm::lookAt(position_, targetPosition_, verticalAxis_);
     }
 
-    // left
-    if(input.getKey(SDL_SCANCODE_LEFT) || input.getKey(SDL_SCANCODE_A))
-    {
-        this->position = this->position + this->lateralMovement * this->velocity;
-        this->targetPoint = this->position + this->orientation;
+    void Camera::setPosition(glm::vec3 position) {
+        position_ = position;
+        targetPosition_ = position_ + direction_;
     }
 
-    // right
-    if(input.getKey(SDL_SCANCODE_RIGHT) || input.getKey(SDL_SCANCODE_D))
+    glm::vec3 Camera::getPosition()
     {
-        this->position = this->position - this->lateralMovement * this->velocity;
-        this->targetPoint = this->position + this->orientation;
-    }
-}
-
-void Camera::lookAt(glm::mat4 &view)
-{
-    view = glm::lookAt(this->position, this->targetPoint, this->verticalAxis);
-}
-
-void Camera::setTargetPoint(glm::vec3 targetPoint)
-{
-    this->orientation = this->targetPoint - this->position;
-    this->orientation = glm::normalize(this->orientation);
-
-    if(this->verticalAxis.x == 1.0)
-    {
-        this->phi = asin(this->orientation.x);
-        this->theta = acos(this->orientation.y / cos(this->phi));
-
-        if (this->orientation.y < 0)
-            this->theta *= -1;
-    }
-    else if(this->verticalAxis.y == 1.0)
-    {
-        this->phi = asin(this->orientation.y);
-        this->theta = acos(this->orientation.z / cos(this->phi));
-
-        if (this->orientation.z < 0)
-            this->theta *= -1;
-    }
-    else
-    {
-        this->phi = asin(this->orientation.x);
-        this->theta = acos(this->orientation.z / cos(this->phi));
-
-        if (this->orientation.z < 0)
-            this->theta *= -1;
+        return position_;
     }
 
-    // Conversion to degree
-    this->phi = this->phi * 180 / M_PI;
-    this->theta = this->theta * 180 / M_PI;
-}
+    float Camera::getSensitivity() const
+    {
+        return sensitivity_;
+    }
 
-void Camera::setPosition(glm::vec3 position)
-{
-  this->position = position;
-  this->targetPoint = this->position + this->orientation;
-}
+    float Camera::getVelocity() const
+    {
+        return velocity_;
+    }
 
-glm::vec3 Camera::getPosition()
-{
-  return this->position;
-}
+    void Camera::setSensitivity(float sensitivity)
+    {
+        sensitivity_ = sensitivity;
+    }
 
-float Camera::getSensitivity() const
-{
-  return this->sensitivity;
-}
+    void Camera::setVelocity(float velocity)
+    {
+        velocity_ = velocity;
+    }
 
-float Camera::getVelocity() const
-{
-  return this->velocity;
-}
+    // MARK: - Private
 
-void Camera::setSensitivity(float sensitivity)
-{
-  this->sensitivity = sensitivity;
-}
+    void Camera::orientate_(int xRel, int yRel)
+    {
+        verticalAngle_ += -yRel * sensitivity_;
+        horizontalAngle_ += -xRel * sensitivity_;
 
-void Camera::setVelocity(float velocity)
-{
-  this->velocity = velocity;
+        // Limit the angle of the y axis
+        verticalAngle_ = utils::clamp(-89, 89, verticalAngle_);
+
+        float verticalAngleRadian = utils::degrees_to_radians(verticalAngle_);
+        float horizontalAngleRadian = utils::degrees_to_radians(horizontalAngle_);
+
+        if (verticalAxis_.x == 1.0)
+        {
+            direction_.x = sin(verticalAngleRadian);
+            direction_.y = cos(verticalAngleRadian) * cos(horizontalAngleRadian);
+            direction_.z = cos(verticalAngleRadian) * sin(horizontalAngleRadian);
+        }
+        else if(verticalAxis_.y == 1.0)
+        {
+            direction_.x = cos(verticalAngleRadian) * sin(horizontalAngleRadian);
+            direction_.y = sin(verticalAngleRadian);
+            direction_.z = cos(verticalAngleRadian) * cos(horizontalAngleRadian);
+        } 
+        else
+        {
+            direction_.x = cos(verticalAngleRadian) * cos(horizontalAngleRadian);
+            direction_.y = cos(verticalAngleRadian) * sin(horizontalAngleRadian);
+            direction_.z = sin(verticalAngleRadian);
+        }
+
+        lateralDirection_ = glm::normalize(
+            glm::cross(verticalAxis_, direction_)
+        );
+
+        targetPosition_ = position_ + direction_;
+    }
+
+    void Camera::init_()
+    {
+        // Normalize vector betwen the postion and the target position
+        direction_ = glm::normalize(targetPosition_ - position_);
+
+        if (verticalAxis_.x == 1.0)
+        {
+            verticalAngle_ = asin(direction_.x);
+            horizontalAngle_ = acos(direction_.y / cos(verticalAngle_));
+
+            if (direction_.y < 0)
+                horizontalAngle_ *= -1;
+        }
+        else if(verticalAxis_.y == 1.0)
+        {
+            verticalAngle_ = asin(direction_.y);
+            horizontalAngle_ = acos(direction_.z / cos(verticalAngle_));
+
+            if (direction_.z < 0)
+                horizontalAngle_ *= -1;
+        } 
+        else
+        {
+            verticalAngle_ = asin(direction_.x);
+            horizontalAngle_ = acos(direction_.z / cos(verticalAngle_));
+
+            if (direction_.z < 0)
+                horizontalAngle_ *= -1;
+        }
+
+        verticalAngle_ = utils::radians_to_degrees(verticalAngle_);
+        horizontalAngle_ = utils::radians_to_degrees(horizontalAngle_);
+    }
 }

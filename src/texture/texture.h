@@ -11,17 +11,20 @@
 #include <iostream>
 #include <string>
 
-#include "../utils/imageUtils.h"
+#include "image_utils.h"
 
-class Texture
+namespace texture
 {
-    public:
-        Texture(const char* imageFilePath);
-        ~Texture();
-        bool load();
-        GLuint getID() const;
+  class Texture
+  {
+      public:
+          Texture(const char* filePath);
+          ~Texture();
+          bool load();
+          GLuint getID() const;
 
-    private:
-        GLuint id;
-        const char* imageFilePath;
-};
+      private:
+          GLuint id_;
+          const char* filePath_;
+  };
+}

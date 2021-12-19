@@ -8,8 +8,7 @@
 
 Chunk::Chunk(int size, int height, const char* vertexPath, const char* fragmentPath)
     : data(size * CHUNK_SIZE, height * CHUNK_SIZE, size * CHUNK_SIZE),
-      shader(vertexPath, fragmentPath)
-{
+      shader(vertexPath, fragmentPath) {
     this->shader.load();
     this->size = size;
     this->height = height;
@@ -22,30 +21,26 @@ Chunk::Chunk(int size, int height, const char* vertexPath, const char* fragmentP
     this->position.z = 0;
 }
 
-Chunk::~Chunk()
-{
+Chunk::~Chunk() {
     glDeleteVertexArrays(1, &this->vaoID);
     glDeleteBuffers(1, &this->vboID);
 }
 
-void Chunk::setBlock(int x, int y, int z, int value)
-{
+void Chunk::setBlock(int x, int y, int z, int value) {
     if (outOfBound(x, y, z))
         return;
 
     data(x, y, z) = value;
 }
 
-int Chunk::getBlock(int x, int y, int z)
-{
+int Chunk::getBlock(int x, int y, int z) {
     if (outOfBound(x, y, z))
         return 0;
 
     return data(x, y, z);
 }
 
-bool Chunk::outOfBound(int x, int y, int z)
-{
+bool Chunk::outOfBound(int x, int y, int z) {
     if (x >= (this->size * CHUNK_SIZE)) return true;
     if (y >= (this->height * CHUNK_SIZE)) return true;
     if (z >= (this->size * CHUNK_SIZE)) return true;
@@ -57,13 +52,11 @@ bool Chunk::outOfBound(int x, int y, int z)
     return false;
 }
 
-void Chunk::setPosition(glm::vec3 position)
-{
+void Chunk::setPosition(glm::vec3 position) {
     this->position = position;
 }
 
-void Chunk::fillRandom()
-{
+void Chunk::fillRandom() {
     srand(time(NULL));
 
     // Fill Chunk data with random value
@@ -129,12 +122,10 @@ void Chunk::fillRandom()
           |<----->|
             size
 */
-void Chunk::addFace(int x, int y, int z, facePosition facing)
-{
+void Chunk::addFace(int x, int y, int z, facePosition facing) {
     vertex v;
 
-    if (facing == ABOVE)
-    {
+    if (facing == ABOVE) {
         // vertices
         v.x = x + CHUNK_SIZE; v.y = y + CHUNK_SIZE; v.z = z + CHUNK_SIZE; this->vertices.push_back(v); // 0
         v.x = x + CHUNK_SIZE; v.y = y + CHUNK_SIZE; v.z = z;              this->vertices.push_back(v); // 1
@@ -152,9 +143,7 @@ void Chunk::addFace(int x, int y, int z, facePosition facing)
         v.x = 1.0; v.y = 0.0; v.z = 0.0; this->colors.push_back(v); // 2
         v.x = 1.0; v.y = 0.0; v.z = 0.0; this->colors.push_back(v); // 1
         v.x = 1.0; v.y = 0.0; v.z = 0.0; this->colors.push_back(v); // 3
-    }
-    else if (facing == BELOW)
-    {
+    } else if (facing == BELOW) {
         // vertices
         v.x = x + CHUNK_SIZE; v.y = y;              v.z = z + CHUNK_SIZE; this->vertices.push_back(v); // 4
         v.x = x;              v.y = y;              v.z = z + CHUNK_SIZE; this->vertices.push_back(v); // 5
@@ -172,9 +161,7 @@ void Chunk::addFace(int x, int y, int z, facePosition facing)
         v.x = 1.0; v.y = 1.0; v.z = 0.0; this->colors.push_back(v); // 6
         v.x = 1.0; v.y = 1.0; v.z = 0.0; this->colors.push_back(v); // 5
         v.x = 1.0; v.y = 1.0; v.z = 0.0; this->colors.push_back(v); // 7
-    }
-    else if (facing == LEFT)
-    {
+    } else if (facing == LEFT) {
         // vetices
         v.x = x;              v.y = y + CHUNK_SIZE; v.z = z + CHUNK_SIZE; this->vertices.push_back(v); // 2
         v.x = x;              v.y = y + CHUNK_SIZE; v.z = z;              this->vertices.push_back(v); // 3
@@ -192,9 +179,7 @@ void Chunk::addFace(int x, int y, int z, facePosition facing)
         v.x = 0.0; v.y = 0.0; v.z = 1.0; this->colors.push_back(v); // 5
         v.x = 0.0; v.y = 0.0; v.z = 1.0; this->colors.push_back(v); // 3
         v.x = 0.0; v.y = 0.0; v.z = 1.0; this->colors.push_back(v); // 7
-    }
-    else if (facing == RIGHT)
-    {
+    } else if (facing == RIGHT) {
         // vertices
         v.x = x + CHUNK_SIZE; v.y = y + CHUNK_SIZE; v.z = z + CHUNK_SIZE; this->vertices.push_back(v); // 0
         v.x = x + CHUNK_SIZE; v.y = y;              v.z = z + CHUNK_SIZE; this->vertices.push_back(v); // 4
@@ -212,9 +197,7 @@ void Chunk::addFace(int x, int y, int z, facePosition facing)
         v.x = 1.0; v.y = 0.0; v.z = 1.0; this->colors.push_back(v); // 1
         v.x = 1.0; v.y = 0.0; v.z = 1.0; this->colors.push_back(v); // 4
         v.x = 1.0; v.y = 0.0; v.z = 1.0; this->colors.push_back(v); // 6
-    }
-    else if (facing == FRONT)
-    {
+    } else if (facing == FRONT) {
         // vertices
         v.x = x + CHUNK_SIZE; v.y = y + CHUNK_SIZE; v.z = z + CHUNK_SIZE; this->vertices.push_back(v); // 0
         v.x = x;              v.y = y + CHUNK_SIZE; v.z = z + CHUNK_SIZE; this->vertices.push_back(v); // 2
@@ -232,9 +215,7 @@ void Chunk::addFace(int x, int y, int z, facePosition facing)
         v.x = 0.0; v.y = 1.0; v.z = 0.0; this->colors.push_back(v); // 5
         v.x = 0.0; v.y = 1.0; v.z = 0.0; this->colors.push_back(v); // 4
         v.x = 0.0; v.y = 1.0; v.z = 0.0; this->colors.push_back(v); // 0
-    }
-    else if (facing == BACK)
-    {
+    } else if (facing == BACK) {
         // vertices
         v.x = x;              v.y = y;              v.z = z;              this->vertices.push_back(v); // 7
         v.x = x;              v.y = y + CHUNK_SIZE; v.z = z;              this->vertices.push_back(v); // 3
@@ -255,8 +236,7 @@ void Chunk::addFace(int x, int y, int z, facePosition facing)
     }
 }
 
-void Chunk::load()
-{
+void Chunk::load() {
     if (glIsBuffer(this->vboID) == GL_TRUE)
         glDeleteBuffers(1, &this->vboID);
 
@@ -283,8 +263,7 @@ void Chunk::load()
   glBindVertexArray(0);
 }
 
-void Chunk::display(glm::mat4 &projection, glm::mat4 &view, glm::mat4 &model)
-{
+void Chunk::display(glm::mat4 &projection, glm::mat4 &view, glm::mat4 &model) {
     GLuint worldPositionID = glGetUniformLocation(this->shader.getProgramID(), "worldPosition");
     GLuint viewID = glGetUniformLocation(this->shader.getProgramID(), "view");
     GLuint modelID = glGetUniformLocation(this->shader.getProgramID(), "model");

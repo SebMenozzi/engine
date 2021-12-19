@@ -5,18 +5,19 @@
 #else
     #include <GL3/gl.h>
 #endif
-
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#include "../shader/shader.h"
-
-#include "../array3D.h"
 #include <time.h>
-#include "../types.h"
 #include <vector>
+
+#include "shader.h"
+
+#include "types.h"
+#include "array3D.h"
+
+enum facePosition { ABOVE, BELOW, LEFT, RIGHT, FRONT, BACK };
 
 class Chunk
 {
@@ -35,7 +36,7 @@ private:
     int height;
     glm::vec3 position;
 
-    Shader shader;
+    shader::Shader shader;
     std::vector<vertex> vertices;
     std::vector<vertex> colors;
 

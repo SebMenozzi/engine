@@ -11,10 +11,10 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "../shader/shader.h"
+#include "shader.h"
 
 #include <time.h>
-#include "../types.h"
+#include "types.h"
 #include <vector>
 
 class Heightmap
@@ -32,7 +32,7 @@ private:
     int minHeight;
     int maxHeight;
 
-    Shader shader;
+    shader::Shader shader;
     std::vector<vertex> vertices;
     std::vector<vertex> colors;
 
