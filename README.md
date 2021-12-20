@@ -16,6 +16,7 @@ CMake, OpenGL 3.*
 - sudo apt-get install libsdl2-ttf-2.0-0
 - sudo apt-get install assimp-utils
 - sudo apt-get install libboost-all-dev
+- sudo apt-get install libglm-dev
 
 ## MacOS
 
@@ -24,3 +25,4 @@ CMake, OpenGL 3.*
 - brew install sdl2_ttf
 - brew install assimp
 - brew install boost
+- brew install glm
