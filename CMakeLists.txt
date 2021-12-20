@@ -18,7 +18,7 @@ find_package(SDL2_image REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
-# Find assimp
+# Find Assimp
 find_package(assimp REQUIRED)
 
 # Build options
@@ -91,6 +91,7 @@ endif()
 
 set(BOOST_LIBRARIES Boost::system Boost::filesystem Boost::program_options ${CMAKE_DL_LIBS})
 
+include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLM_INCLUDE_DIRS})
 include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${SDL2_MIXER_INCLUDE_DIR} ${SDL2_TTF_INCLUDE_DIR})
 include_directories(${ASSIMP_INCLUDE_DIRS})
@@ -98,4 +99,4 @@ include_directories(${ASSIMP_INCLUDE_DIRS})
 # Exec
 add_executable(engine)
 target_sources(engine PRIVATE "src/main.cpp" ${SRC_CPP})
-target_link_libraries(engine PRIVATE ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${OPENGL_LIBRARIES} ${GLM_LIBRARIES} ${BOOST_LIBRARIES} ${ASSIMP_LIBRARIES})
+target_link_libraries(engine PRIVATE ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${GLM_LIBRARIES} ${BOOST_LIBRARIES} ${ASSIMP_LIBRARIES})
