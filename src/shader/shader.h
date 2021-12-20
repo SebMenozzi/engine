@@ -1,12 +1,12 @@
 #pragma once
 
 #include <iostream>
-#include <glm/glm.hpp>
 #ifdef __APPLE__
     #include <OpenGL/gl3.h>
 #else
-    #include <GL/gl.h>
+    #include <GL3/gl.h>
 #endif
+#include <glm/glm.hpp>
 
 #include "file_utils.h"
 
