@@ -1,11 +1,7 @@
 #pragma once
 
 #include <iostream>
-#ifdef __APPLE__
-    #include <OpenGL/gl3.h>
-#else
-    #include <GL3/gl3.h>
-#endif
+#include <GL/glew.h>
 #include <glm/glm.hpp>
 
 #include "file_utils.h"

@@ -10,6 +10,7 @@ CMake, OpenGL 3.*
 
 ## Linux
 
+- sudo apt-get install libglew-dev
 - sudo apt-get install libsdl2-dev
 - sudo apt-get install libsdl2-image-dev
 - sudo apt-get install libsdl2-mixer-dev
@@ -20,6 +21,7 @@ CMake, OpenGL 3.*
 
 ## MacOS
 
+- brew install glew
 - brew install sdl2
 - brew install sdl2_image
 - brew install sdl2_ttf

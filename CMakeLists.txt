@@ -6,6 +6,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 # Find Boost library
 find_package(Boost REQUIRED COMPONENTS system filesystem program_options)
 
+# Find Glew
+find_package(GLEW REQUIRED)
+
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 
@@ -99,4 +102,4 @@ include_directories(${ASSIMP_INCLUDE_DIRS})
 # Exec
 add_executable(engine)
 target_sources(engine PRIVATE "src/main.cpp" ${SRC_CPP})
-target_link_libraries(engine PRIVATE ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${GLM_LIBRARIES} ${BOOST_LIBRARIES} ${ASSIMP_LIBRARIES})
+target_link_libraries(engine PRIVATE ${OPENGL_LIBRARIES} GLEW::GLEW ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${GLM_LIBRARIES} ${BOOST_LIBRARIES} ${ASSIMP_LIBRARIES})
