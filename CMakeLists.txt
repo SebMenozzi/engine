@@ -7,17 +7,19 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 find_package(Boost REQUIRED COMPONENTS system filesystem program_options)
 
 # Find OpenGL
-#if(NOT WIN32)
 find_package(OpenGL REQUIRED)
-#endif()
 
 # Find GLM
 find_package(GLM REQUIRED)
 
-# Find SDL2, SDL2_image and SDL2_ttf
+# Find SDL2, SDL2_image, SDL2_mixer, SDL2_ttf
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
+find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)
+
+# Find assimp
+find_package(assimp REQUIRED)
 
 # Build options
 set(CMAKE_CXX_STANDARD 17)
@@ -90,9 +92,10 @@ endif()
 set(BOOST_LIBRARIES Boost::system Boost::filesystem Boost::program_options ${CMAKE_DL_LIBS})
 
 include_directories(${GLM_INCLUDE_DIRS})
-include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${SDL2_TTF_INCLUDE_DIR})
+include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${SDL2_MIXER_INCLUDE_DIR} ${SDL2_TTF_INCLUDE_DIR})
+include_directories(${ASSIMP_INCLUDE_DIRS})
 
 # Exec
 add_executable(engine)
 target_sources(engine PRIVATE "src/main.cpp" ${SRC_CPP})
-target_link_libraries(engine PRIVATE ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${OPENGL_LIBRARIES} ${GLM_LIBRARIES} ${BOOST_LIBRARIES})
+target_link_libraries(engine PRIVATE ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${OPENGL_LIBRARIES} ${GLM_LIBRARIES} ${BOOST_LIBRARIES} ${ASSIMP_LIBRARIES})

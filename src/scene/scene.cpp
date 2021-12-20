@@ -101,19 +101,19 @@ namespace scene
         glm::mat4 projection = glm::perspective(
             glm::radians(45.0f), // The vertical field of view, in radian: the amount of zoom. Usually between 90° (extra wide) and 30° (quite zoomed in)
             4.0f / 3.0f,  // Aspect Ratio. Depends on the size of your window.
-            1.0f, // Near clipping plane. Keep as big as possible, or you'll get precision issues
-            100.0f // Far clipping plane. Keep as little as possible.
+            0.0001f, // Near clipping plane. Keep as big as possible, or you'll get precision issues
+            1000.0f // Far clipping plane. Keep as little as possible.
         );
 
         // View Matrix
         glm::mat4 cameraView = glm::mat4(1.0f);
 
         camera::Camera camera(
-            glm::vec3(15, 15, 15), // Camera is at (15,15,15), in World Space
+            glm::vec3(4, 4, 4), // Camera position in World Space
             glm::vec3(0, 0, 0), // and looks at the origin
             glm::vec3(0, 1, 0), // Head is up (set to 0,-1,0 to look upside-down)
             0.1,
-            0.6
+            0.1
         );
 
         // Model matrix
@@ -133,10 +133,10 @@ namespace scene
         basicShader_.setVec3("fragmentColor", glm::vec3(1.0f, 0.0f, 0.0f));
         basicShader_.setMat4("projection", projection);
 
-        mesh::UVSphere sphere(4.0, 32.0, 32.0, nullptr, nullptr, nullptr);
+        mesh::UVSphere sphere(1.0, 20.0, 20.0, nullptr, nullptr, nullptr);
         sphere.load();
 
-        mesh::Cube cube(4.0, nullptr, nullptr, nullptr);
+        mesh::Cube cube(1.0, nullptr, nullptr, nullptr);
         cube.load();
 
         while (!input_.hasQuit())
@@ -165,12 +165,12 @@ namespace scene
             basicShader_.setMat4("view", cameraView);
 
             model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(8.0f, 8.0f, 8.0f));
+            model = glm::translate(model, glm::vec3(2.0f, 2.0f, 2.0f));
             basicShader_.setMat4("model", model);
             sphere.render();
 
             model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(-8.0f, 8.0f, 8.0f));
+            model = glm::translate(model, glm::vec3(-2.0f, 2.0f, 2.0f));
             basicShader_.setMat4("model", model);
             cube.render();
 
