@@ -2,6 +2,10 @@
 Sebastien Menozzi
 Alan Leblanc
 
+# Requirements
+
+CMake, OpenGL 3.*
+
 # Installation
 
 ## Linux
