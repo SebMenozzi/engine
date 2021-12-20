@@ -2,7 +2,11 @@
 
 #include <iostream>
 #include <string>
-#include <GL/glew.h>
+#ifdef __APPLE__
+    #include <OpenGL/gl3.h>
+#else
+    #include <GL/glew.h>
+#endif
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <SDL2/SDL.h>

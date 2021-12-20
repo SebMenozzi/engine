@@ -1,30 +1,36 @@
 # POGLA
-Sebastien Menozzi
-Alan Leblanc
+
+EPITA project that is a simple OpenGL engine.
 
 # Requirements
 
-CMake, OpenGL 3.*
+- CMake 3.1
+- OpenGL 3.*
 
-# Installation
+# Dependencies
 
 ## Linux
 
-- sudo apt-get install libglew-dev
-- sudo apt-get install libsdl2-dev
-- sudo apt-get install libsdl2-image-dev
-- sudo apt-get install libsdl2-mixer-dev
-- sudo apt-get install libsdl2-ttf-dev
-- sudo apt-get install libassimp-dev
-- sudo apt-get install libboost-all-dev
-- sudo apt-get install libglm-dev
+- **Glew**: run **sudo apt-get install libglew-dev**
+- **SDL2**: run **sudo apt-get install libsdl2-dev**
+- **SLD2 Image**: run **sudo apt-get install libsdl2-image-dev**
+- **SDL2 Mixer**: run **sudo apt-get install libsdl2-mixer-dev**
+- **SDL2 TTF**: run **sudo apt-get install libsdl2-ttf-dev**
+- **Assimp**: run **sudo apt-get install libassimp-dev**
+- **Boost**: run **sudo apt-get install libboost-all-dev**
+- **GLM**: run **sudo apt-get install libglm-dev**
 
 ## MacOS
 
-- brew install glew
-- brew install sdl2
-- brew install sdl2_image
-- brew install sdl2_ttf
-- brew install assimp
-- brew install boost
-- brew install glm
+- **Glew**: run **brew install glew**
+- **SDL2**: run **brew install sdl2**
+- **SLD2 Image**: run **brew install sdl2_image**
+- **SLD2 Mixer**: run **brew install sdl2_mixer**
+- **SDL2 TTF**: run **brew install sdl2_ttf**
+- **Assimp**: run **brew install assimp**
+- **Boost**: run **brew install boost**
+- **GLM**: run **brew install glm**
+
+# Build
+
+- Run **make debug** or **make release**. Default **make** is in debug.
