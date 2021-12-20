@@ -1,9 +1,9 @@
 #pragma once
 
 #ifdef __APPLE__
-  #include <OpenGL/gl3.h>
+    #include <OpenGL/gl3.h>
 #else
-  #include <GL/gl.h>
+    #include <GL3/gl3.h>
 #endif
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -14,16 +14,16 @@
 
 namespace texture
 {
-  class Texture
-  {
-      public:
-          Texture(const char* filePath);
-          ~Texture();
-          bool load();
-          GLuint getID() const;
+    class Texture
+    {
+        public:
+            Texture(const char* filePath);
+            ~Texture();
+            bool load();
+            GLuint getID() const;
 
-      private:
-          GLuint id_;
-          const char* filePath_;
-  };
+        private:
+            GLuint id_;
+            const char* filePath_;
+    };
 }
