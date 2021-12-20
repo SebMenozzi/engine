@@ -14,10 +14,7 @@ namespace mesh
             UVSphere(
                 float radius, 
                 int sectorCount, 
-                int stackCount,
-                const char* diffusePath, 
-                const char* specularPath,
-                const char* normalPath
+                int stackCount
             );
 
         protected:

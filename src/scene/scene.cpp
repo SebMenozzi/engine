@@ -17,7 +17,8 @@ namespace scene
         clock_(),
         input_(),
         basicShader_("assets/shaders/basic/basic.vert", "assets/shaders/basic/basic.frag"),
-        skyboxShader_("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag")
+        skyboxShader_("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag"),
+        isWireframe_(false)
     {}
 
     Scene::~Scene() {
@@ -79,29 +80,31 @@ namespace scene
         glEnable(GL_MULTISAMPLE);
 
         // Enable face culling
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
+        //glEnable(GL_CULL_FACE);
+        //glCullFace(GL_BACK);
+
         // clock wise
         glFrontFace(GL_CW);
 
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        //glEnable(GL_BLEND);
+        //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         return true;
     }
 
-    void Scene::loop() {
+    void Scene::loop()
+    {
         uint32 frameRate = 1000 / 60; // 60 fps
         uint32 startLoop = 0, endLoop = 0, durationLoop = 0;
 
-        // create skybox
+        // Create skybox
         mesh::Skybox skybox = createSkybox_();
 
         // Projection matrix
         glm::mat4 projection = glm::perspective(
             glm::radians(45.0f), // The vertical field of view, in radian: the amount of zoom. Usually between 90° (extra wide) and 30° (quite zoomed in)
             4.0f / 3.0f,  // Aspect Ratio. Depends on the size of your window.
-            0.0001f, // Near clipping plane. Keep as big as possible, or you'll get precision issues
+            0.1f, // Near clipping plane. Keep as big as possible, or you'll get precision issues
             1000.0f // Far clipping plane. Keep as little as possible.
         );
 
@@ -133,11 +136,19 @@ namespace scene
         basicShader_.setVec3("fragmentColor", glm::vec3(1.0f, 0.0f, 0.0f));
         basicShader_.setMat4("projection", projection);
 
-        mesh::UVSphere sphere(1.0, 20.0, 20.0, nullptr, nullptr, nullptr);
+        mesh::UVSphere sphere(1, 20.0, 20.0);
         sphere.load();
 
-        mesh::Cube cube(1.0, nullptr, nullptr, nullptr);
+        mesh::Cube cube(1);
         cube.load();
+
+        mesh::Heightmap heightmap("assets/textures/heightmap.png", 0.1, 0.0, 10.0);
+        heightmap.load();
+
+        mesh::Model obj("assets/models/michelangelo/michelangelo.obj");
+        obj.load();
+
+        bool lastXKeyState = false;
 
         while (!input_.hasQuit())
         {
@@ -149,6 +160,18 @@ namespace scene
             // press escape to quit
             if (input_.getKey(SDL_SCANCODE_ESCAPE))
                 break;
+
+            // Toggle Wireframe mode
+            if (!lastXKeyState && input_.getKey(SDL_SCANCODE_X))
+            {
+                isWireframe_ = !isWireframe_;
+
+                if (isWireframe_)
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                else
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            }
+            lastXKeyState = input_.getKey(SDL_SCANCODE_X);
 
             camera.move(input_);
 
@@ -165,14 +188,23 @@ namespace scene
             basicShader_.setMat4("view", cameraView);
 
             model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(2.0f, 2.0f, 2.0f));
+            model = glm::translate(model, glm::vec3(1.0f, 1.0f, 1.0f));
             basicShader_.setMat4("model", model);
             sphere.render();
 
             model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(-2.0f, 2.0f, 2.0f));
+            model = glm::translate(model, glm::vec3(-1.0f, 1.0f, 1.0f));
             basicShader_.setMat4("model", model);
             cube.render();
+
+            model = glm::mat4(1.0f);
+            basicShader_.setMat4("model", model);
+            heightmap.render();
+
+            model = glm::mat4(1.0f);
+            //model = glm::translate(model, glm::vec3(-1.0f, -0.5f, 0.0f));
+            basicShader_.setMat4("model", model);
+            obj.render();
 
             // update skybox view
             skyboxShader_.use();

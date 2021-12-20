@@ -1,7 +1,7 @@
 #include "skybox.h"
 
 #ifndef BUFFER_OFFSET
-    #define BUFFER_OFFSET(offset) ((char*) 0 + offset)
+    #define BUFFER_OFFSET(offset) ((const GLvoid *) (std::uintptr_t) (offset))
 #endif
 
 namespace mesh
@@ -10,7 +10,7 @@ namespace mesh
         float size, 
         std::vector<std::string> filepaths
     )
-    : Cube(size, nullptr, nullptr, nullptr), cubemapTexture_(filepaths) {
+    : Cube(size), cubemapTexture_(filepaths) {
         cubemapTexture_.load();
     }
 
@@ -22,7 +22,7 @@ namespace mesh
         glBindVertexArray(vaoID_);
             glGenBuffers(1, &vboID_);
             glBindBuffer(GL_ARRAY_BUFFER, vboID_);
-                int verticesSize = vertices_.size() * sizeof(float);
+                int verticesSize = vertices_.size() * sizeof(glm::vec3);
 
                 // Allocate to the GPU
                 glBufferData(GL_ARRAY_BUFFER, verticesSize, 0, GL_STATIC_DRAW);
@@ -44,7 +44,7 @@ namespace mesh
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture_.getID());
 
         glBindVertexArray(vaoID_);
-        glDrawArrays(GL_TRIANGLES, 0, vertices_.size() / 3);
+        glDrawArrays(GL_TRIANGLES, 0, vertices_.size());
         glDepthMask(GL_TRUE);
         glBindVertexArray(0);
 

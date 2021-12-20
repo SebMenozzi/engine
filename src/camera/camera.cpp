@@ -91,7 +91,7 @@ namespace camera
         horizontalAngle_ += -xRel * sensitivity_;
 
         // Limit the angle of the y axis
-        verticalAngle_ = utils::clamp(-89, 89, verticalAngle_);
+        verticalAngle_ = utils::clamp(verticalAngle_, -89, 89);
 
         float verticalAngleRadian = utils::degrees_to_radians(verticalAngle_);
         float horizontalAngleRadian = utils::degrees_to_radians(horizontalAngle_);

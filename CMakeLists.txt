@@ -22,6 +22,8 @@ find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
 # Find Assimp
+# https://githubmemory.com/repo/ros-planning/geometric_shapes/issues/23
+# @sebmenozzi: I spent an our figuring out assimp_LIBRARIES has to be in lowercase...
 find_package(assimp REQUIRED)
 
 # Build options
@@ -47,6 +49,8 @@ set(SRC_CPP
   src/mesh/plane/plane.cpp
   src/mesh/skybox/skybox.cpp
   src/mesh/sphere/uv_sphere.cpp
+  src/mesh/heightmap/heightmap.cpp
+  src/mesh/model/model.cpp
   src/mesh/mesh.cpp
 
   src/scene/scene.cpp
@@ -55,9 +59,6 @@ set(SRC_CPP
 
   src/texture/texture.cpp
   src/texture/cubemap_texture.cpp
-
-  src/world/chunk.cpp
-  src/world/heightmap.cpp
 )
 
 include_directories(
@@ -66,13 +67,15 @@ include_directories(
     src/shader
     src/texture
     src/camera
-    src/world
     src/input
+    src/material
     src/mesh
     src/mesh/cube
     src/mesh/plane
     src/mesh/skybox
     src/mesh/sphere
+    src/mesh/heightmap
+    src/mesh/model
     src/utils
     src/utils/clock
 )
@@ -97,9 +100,9 @@ set(BOOST_LIBRARIES Boost::system Boost::filesystem Boost::program_options ${CMA
 include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLM_INCLUDE_DIRS})
 include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${SDL2_MIXER_INCLUDE_DIR} ${SDL2_TTF_INCLUDE_DIR})
-include_directories(${ASSIMP_INCLUDE_DIRS})
+include_directories(${ASSIMP_INCLUDE_DIR})
 
 # Exec
 add_executable(engine)
 target_sources(engine PRIVATE "src/main.cpp" ${SRC_CPP})
-target_link_libraries(engine PRIVATE ${OPENGL_LIBRARIES} GLEW::GLEW ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${GLM_LIBRARIES} ${BOOST_LIBRARIES} ${ASSIMP_LIBRARIES})
+target_link_libraries(engine PRIVATE ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${SDL2_TTF_LIBRARIES} ${GLM_LIBRARIES} ${BOOST_LIBRARIES} ${assimp_LIBRARIES})

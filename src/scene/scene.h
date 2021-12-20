@@ -23,6 +23,8 @@
 #include "plane.h"
 #include "skybox.h"
 #include "uv_sphere.h"
+#include "heightmap.h"
+#include "model.h"
 
 namespace scene
 {
@@ -48,6 +50,8 @@ namespace scene
 
         shader::Shader basicShader_;
         shader::Shader skyboxShader_;
+
+        bool isWireframe_;
 
         void sdlDie_(const char* message);
         void setOpenGLAttributes_();

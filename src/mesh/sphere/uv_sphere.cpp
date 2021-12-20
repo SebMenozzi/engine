@@ -9,13 +9,10 @@ namespace mesh
 {
     UVSphere::UVSphere(
         float radius,
-        int sectorCount, 
-        int stackCount,
-        const char* diffusePath, 
-        const char* specularPath,
-        const char* normalPath
+        int sectorCount,
+        int stackCount
     ):
-        Mesh(diffusePath, specularPath, normalPath),
+        Mesh(),
         radius_(radius),
         sectorCount_((sectorCount < MIN_SECTOR_COUNT) ? MIN_SECTOR_COUNT : sectorCount),
         stackCount_((stackCount < MIN_STACK_COUNT) ? MIN_STACK_COUNT : stackCount) 
@@ -25,7 +22,8 @@ namespace mesh
         float sectorStep = 2 * utils::PI / sectorCount_;
         float stackStep = utils::PI / stackCount_;
 
-        for (int i = 0; i <= stackCount_; ++i) {
+        for (int i = 0; i <= stackCount_; ++i)
+        {
             float stackAngle = utils::PI / 2 - i * stackStep; // Starting from pi/2 to -pi/2
 
             float xy = radius_ * cosf(stackAngle); // r * cos(u)
@@ -38,24 +36,20 @@ namespace mesh
                 float x = xy * cosf(sectorAngle); // r * cos(u) * cos(v)
                 float y = xy * sinf(sectorAngle); // r * cos(u) * sin(v)
 
-                vertices_.push_back(x);
-                vertices_.push_back(y);
-                vertices_.push_back(z);
+                vertices_.push_back(glm::vec3(x, y, z));
 
                 // Normals
                 float nx = x * lengthInv;
                 float ny = y * lengthInv;
                 float nz = z * lengthInv;
 
-                normals_.push_back(nx);
-                normals_.push_back(ny);
-                normals_.push_back(nz);
+                normals_.push_back(glm::vec3(nx, ny, nz));
 
                 // Texture coords
                 float s = (float) j / sectorCount_;
                 float t = (float) i / stackCount_;
-                uvs_.push_back(s);
-                uvs_.push_back(t);
+                
+                uvs_.push_back(glm::vec2(s, t));
             }
         }
 
@@ -66,22 +60,25 @@ namespace mesh
         //  | /  |
         //  k2--k2+1
 
-        for (int i = 0; i < stackCount_; ++i) {
+        for (int i = 0; i < stackCount_; ++i)
+        {
             int k1 = i * (sectorCount + 1); // beginning of current stack
             int k2 = k1 + sectorCount + 1;  // beginning of next stack
 
-            for (int j = 0; j < sectorCount_; ++j, ++k1, ++k2) {
+            for (int j = 0; j < sectorCount_; ++j, ++k1, ++k2)
+            {
                 // 2 triangles per sector excluding first and last stacks
-
                 // k1 => k2 => k1 + 1
-                if (i != 0) {
+                if (i != 0)
+                {
                     indices_.push_back(k1);
                     indices_.push_back(k2);
                     indices_.push_back(k1 + 1);
                 }
 
                 // k1 + 1 => k2 => k2 + 1
-                if (i != (stackCount_ - 1)) {
+                if (i != (stackCount_ - 1))
+                {
                     indices_.push_back(k1 + 1);
                     indices_.push_back(k2);
                     indices_.push_back(k2 + 1);

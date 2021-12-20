@@ -1,27 +1,24 @@
 #include "mesh.h"
 
 #ifndef BUFFER_OFFSET
-    #define BUFFER_OFFSET(offset) ((char*) 0 + offset)
+    #define BUFFER_OFFSET(offset) ((const GLvoid *) (std::uintptr_t) (offset))
 #endif
 
 namespace mesh
 {
+    Mesh::Mesh() {}
+
     Mesh::Mesh(
-        const char* diffusePath, 
-        const char* specularPath,
-        const char* normalPath
+        std::vector<glm::vec3> vertices,
+        std::vector<glm::vec3> normals,
+        std::vector<glm::vec2> uvs,
+        std::vector<unsigned int> indices
     ):
-        vaoID_(0),
-        vboID_(0),
-        eboID_(0),
-        diffuse_(diffusePath), 
-        specular_(specularPath),
-        normal_(normalPath)
-    {
-        diffuse_.load();
-        specular_.load();
-        normal_.load();
-    }
+        vertices_(vertices),
+        normals_(normals),
+        uvs_(uvs),
+        indices_(indices)
+    {}
 
     Mesh::~Mesh()
     {
@@ -31,9 +28,9 @@ namespace mesh
 
         // Clear memory
         vertices_.clear();
-        indices_.clear();
         normals_.clear();
         uvs_.clear();
+        indices_.clear();
     }
 
     void Mesh::load()
@@ -45,9 +42,9 @@ namespace mesh
         glBindVertexArray(vaoID_);
             glGenBuffers(1, &vboID_);
             glBindBuffer(GL_ARRAY_BUFFER, vboID_);
-                int verticesSize = vertices_.size() * sizeof(float);
-                int normalsSize = normals_.size() * sizeof(float);
-                int uvsSize = uvs_.size() * sizeof(float);
+                int verticesSize = vertices_.size() * sizeof(glm::vec3);
+                int normalsSize = normals_.size() * sizeof(glm::vec3);
+                int uvsSize = uvs_.size() * sizeof(glm::vec2);
                 int indicesSize = indices_.size() * sizeof(unsigned int);
 
                 // Allocate to the GPU
@@ -83,24 +80,53 @@ namespace mesh
     }
 
     void Mesh::render()
-    {
-        // Bind diffuse map
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuse_.getID());
+    {   
+        if (diffuseTexture_.has_value())
+        {
+            // Bind diffuse map
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, diffuseTexture_.value().getID());
+        }
 
-        // Bind specular map
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specular_.getID());
+        if (specularTexture_.has_value())
+        {
+            // Bind specular map
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, specularTexture_.value().getID());
+        }
 
-        // Bind normal map
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specular_.getID());
+        if (normalTexture_.has_value())
+        {
+            // Bind normal map
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, normalTexture_.value().getID());
+        }
 
         glBindVertexArray(vaoID_);
         if (indices_.size() == 0)
-            glDrawArrays(GL_TRIANGLES, 0, vertices_.size() / 3);
+            glDrawArrays(GL_TRIANGLES, 0, vertices_.size());
         else
             glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, (void*) 0);
         glBindVertexArray(0);
+    }
+
+    size_t Mesh::nbVertices()
+    {
+        return vertices_.size();
+    }
+
+    void Mesh::setDiffuseTexture(texture::Texture diffuse)
+    {
+        diffuseTexture_ = std::make_optional(diffuse);
+    }
+    
+    void Mesh::setSpecularTexture(texture::Texture specular)
+    {
+        specularTexture_ = std::make_optional(specular);
+    }
+
+    void Mesh::setNormalTexture(texture::Texture normal)
+    {
+        normalTexture_ = std::make_optional(normal);
     }
 }
