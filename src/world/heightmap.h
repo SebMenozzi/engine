@@ -3,19 +3,16 @@
 #ifdef __APPLE__
     #include <OpenGL/gl3.h>
 #else
-    #include <GL3/gl.h>
+    #include <GL/gl.h>
 #endif
-
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <time.h>
+#include <vector>
 
 #include "shader.h"
-
-#include <time.h>
 #include "types.h"
-#include <vector>
 
 class Heightmap
 {
