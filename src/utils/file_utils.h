@@ -5,7 +5,8 @@
 #include <fstream>
 #include <sstream>
 
-namespace utils {
+namespace utils
+{
     inline bool getFileContents(const char* filePath, std::string &source)
     {
         std::ifstream file(filePath);

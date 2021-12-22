@@ -9,12 +9,15 @@ uniform mat4 view;
 uniform mat4 projection;
 
 // Sent to the Geometry shader
+out vec3 position;
 out vec3 normal;
+out vec3 fragPosition;
 
 void main()
 {
     
-    vec3 position = vec3(model * vec4(vertexPosition, 1.0));
+    position = vec3(model * vec4(vertexPosition, 1.0));
+    fragPosition = position;
     normal = mat3(transpose(inverse(model))) * vertexNormal;
     
     gl_Position = projection * view * vec4(position, 1.0);

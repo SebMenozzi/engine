@@ -18,6 +18,9 @@ namespace scene
         input_(),
         basicShader_("assets/shaders/basic/basic.vert", "assets/shaders/basic/basic.frag"),
         skyboxShader_("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag"),
+        heightmapShader_("assets/shaders/heightmap/heightmap.vert", "assets/shaders/heightmap/heightmap.frag"),
+        grassShader_("assets/shaders/grass/grass.vert", "assets/shaders/grass/grass.frag", "assets/shaders/grass/grass.geom"),
+        normalShader_("assets/shaders/normal/normal.vert", "assets/shaders/normal/normal.frag", "assets/shaders/normal/normal.geom"),
         isWireframe_(false)
     {}
 
@@ -125,7 +128,8 @@ namespace scene
         input_.displayCursor(false);
         input_.catchCursor(true);
 
-        // load skybox shader
+        // Load shaders
+
         skyboxShader_.load();
         skyboxShader_.use();
         skyboxShader_.setMat4("projection", projection);
@@ -136,13 +140,33 @@ namespace scene
         basicShader_.setVec3("fragmentColor", glm::vec3(1.0f, 0.0f, 0.0f));
         basicShader_.setMat4("projection", projection);
 
+        heightmapShader_.load();
+        heightmapShader_.use();
+        heightmapShader_.setMat4("projection", projection);
+        heightmapShader_.setFloat("maxHeight", utils::HEIGHTMAP_MAX_HEIGHT);
+
+        grassShader_.load();
+        grassShader_.use();
+        grassShader_.setMat4("projection", projection);
+
+        normalShader_.load();
+        normalShader_.use();
+        normalShader_.setMat4("projection", projection);
+
+        // Load meshes
+
         mesh::UVSphere sphere(1, 20.0, 20.0);
         sphere.load();
 
         mesh::Cube cube(1);
         cube.load();
 
-        mesh::Heightmap heightmap("assets/textures/heightmap.png", 0.1, 0.0, 10.0);
+        mesh::Heightmap heightmap(
+            utils::HEIGHTMAP_ASSET, 
+            utils::HEIGHTMAP_SCALE,
+            utils::HEIGHTMAP_MIN_HEIGHT,
+            utils::HEIGHTMAP_MAX_HEIGHT
+        );
         heightmap.load();
 
         mesh::Model obj("assets/models/michelangelo/michelangelo.obj");
@@ -177,38 +201,63 @@ namespace scene
 
             // Update camera view (by reference)
             camera.lookAt(cameraView);
+            setCameraView_(basicShader_, cameraView);
+            setCameraView_(heightmapShader_, cameraView);
+            setCameraView_(grassShader_, cameraView);
+            setCameraView_(normalShader_, cameraView);
+            setCameraView_(skyboxShader_, glm::mat4(glm::mat3(cameraView))); // Removes any translation
 
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             /* START */
 
-            // Render sphere
-            basicShader_.use();
-            basicShader_.setMat4("view", cameraView);
-
+            // Render Sphere
             model = glm::mat4(1.0f);
             model = glm::translate(model, glm::vec3(1.0f, 1.0f, 1.0f));
+
+            basicShader_.use();
             basicShader_.setMat4("model", model);
             sphere.render();
 
+            normalShader_.use();
+            normalShader_.setMat4("model", model);
+            sphere.render();
+
+            // Render Cube
             model = glm::mat4(1.0f);
             model = glm::translate(model, glm::vec3(-1.0f, 1.0f, 1.0f));
+
+            basicShader_.use();
             basicShader_.setMat4("model", model);
             cube.render();
 
-            model = glm::mat4(1.0f);
-            basicShader_.setMat4("model", model);
-            heightmap.render();
+            normalShader_.use();
+            normalShader_.setMat4("model", model);
+            cube.render();
 
+            // Render Object
             model = glm::mat4(1.0f);
-            //model = glm::translate(model, glm::vec3(-1.0f, -0.5f, 0.0f));
+
+            basicShader_.use();
             basicShader_.setMat4("model", model);
             obj.render();
 
-            // update skybox view
+            // Render Heightmap
+            model = glm::mat4(1.0f);
+
+            heightmapShader_.use();
+            heightmapShader_.setMat4("model", model);
+            heightmap.render();
+
+            // Render Grass
+            model = glm::mat4(1.0f);
+
+            grassShader_.use();
+            grassShader_.setMat4("model", model);
+            heightmap.render();
+
             skyboxShader_.use();
-            skyboxShader_.setMat4("view", glm::mat4(glm::mat3(cameraView))); // removes any translation
             skybox.render();
 
             /* END */
@@ -218,7 +267,7 @@ namespace scene
             endLoop = clock_.getTicks();
             durationLoop = endLoop - startLoop;
 
-            // force frame rate to 60fps
+            // Force frame rate to 60fps
             if (durationLoop < frameRate)
                 SDL_Delay(frameRate - durationLoop);
         }
@@ -236,7 +285,7 @@ namespace scene
         // SDL_GL_CONTEXT_CORE gives us only the newer version, deprecated functions are disabled
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-        // 3.2 is part of the modern versions of OpenGL, but most video cards whould be able to run it
+        // 3.2 is part of the modern versions of OpenGL, but most video cards would be able to run it
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 
@@ -245,7 +294,7 @@ namespace scene
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 
-        // Turn on double buffering with a 24 bits
+        // Turn on double buffering with a 32 bits
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 
@@ -269,5 +318,11 @@ namespace scene
         skybox.load();
 
         return skybox;
+    }
+
+    void Scene::setCameraView_(shader::Shader& shader, glm::mat4 cameraView)
+    {
+        shader.use();
+        shader.setMat4("view", cameraView);
     }
 }

@@ -3,7 +3,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-namespace utils {
+namespace utils
+{
     inline Uint8* pixelRef(SDL_Surface* image, unsigned x, unsigned y)
     {
         int bpp = image->format->BytesPerPixel;

@@ -44,9 +44,15 @@ namespace mesh
         for (size_t x = 0; x < heights_.size(); ++x)
             for (size_t z = 0; z < heights_[0].size(); ++z)
                 addVertices_(x, z);
+
+        for (auto& vertex: vertices_)
+        {
+            auto n = computeNormal_(vertex.x, vertex.z);
+            normals_.push_back(n);
+        }
     }
 
-    float Heightmap::getInterpolatedHeight(float x, float z)
+    float Heightmap::getHeight(float x, float z)
     {
         glm::vec2 current(x, z);
 
@@ -84,10 +90,10 @@ namespace mesh
 
     void Heightmap::addVertices_(float x, float z)
     {
-        float h0 = getInterpolatedHeight(x, z);
-        float h1 = getInterpolatedHeight(x + 1, z);
-        float h2 = getInterpolatedHeight(x, z + 1);
-        float h3 = getInterpolatedHeight(x + 1, z + 1);
+        float h0 = getHeight(x, z);
+        float h1 = getHeight(x + 1, z);
+        float h2 = getHeight(x, z + 1);
+        float h3 = getHeight(x + 1, z + 1);
 
         // 0
         vertices_.push_back(
@@ -119,4 +125,17 @@ namespace mesh
             glm::vec3((x + 1) * scale_, h1, z * scale_)
         );
     }
+
+    glm::vec3 Heightmap::computeNormal_(float x, float z)
+    {
+        float hl = getHeight(x - 1, z);
+        float hr = getHeight(x + 1, z);
+        float hd = getHeight(x, z + 1);
+        float hu = getHeight(x, z - 1);
+
+        glm::vec3 n = glm::vec3(hl - hr, 1.0f, hd - hu);
+
+        return glm::normalize(n);
+    }
+
 }

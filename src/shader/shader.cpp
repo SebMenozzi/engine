@@ -17,7 +17,8 @@ namespace shader
         geometryPath_(geometryPath)
     {}
 
-    Shader::~Shader() {
+    Shader::~Shader()
+    {
         glDeleteShader(vertexShaderID_);
         glDeleteShader(fragmentShaderID_);
         if (geometryPath_ != nullptr)
@@ -26,7 +27,8 @@ namespace shader
         glDeleteProgram(programID_);
     }
 
-    bool Shader::load() {
+    bool Shader::load()
+    {
         // Destroy old shaders if exist
 
         if (glIsShader(vertexShaderID_) == GL_TRUE)
@@ -72,99 +74,109 @@ namespace shader
         return true;
     }
 
-    GLuint Shader::getProgramID() const {
+    GLuint Shader::getProgramID() const
+    {
         return programID_;
     }
 
-    void Shader::use() {
+    void Shader::use()
+    {
         glUseProgram(programID_);
     }
 
-    void Shader::setBool(const std::string &name, bool value) const {
+    void Shader::setBool(const std::string &name, bool value) const
+    {
         glUniform1i(glGetUniformLocation(programID_, name.c_str()), (int) value);
     }
 
-    void Shader::setInt(const std::string &name, int value) const {
+    void Shader::setInt(const std::string &name, int value) const
+    {
         glUniform1i(glGetUniformLocation(programID_, name.c_str()), value);
     }
 
-    void Shader::setFloat(const std::string &name, float value) const {
+    void Shader::setFloat(const std::string &name, float value) const
+    {
         glUniform1f(glGetUniformLocation(programID_, name.c_str()), value);
     }
 
-    void Shader::setVec2(const std::string &name, const glm::vec2 &value) const {
+    void Shader::setVec2(const std::string &name, const glm::vec2 &value) const
+    {
         glUniform2fv(glGetUniformLocation(programID_, name.c_str()), 1, &value[0]);
     }
 
-    void Shader::setVec2(const std::string &name, float x, float y) const {
+    void Shader::setVec2(const std::string &name, float x, float y) const
+    {
         glUniform2f(glGetUniformLocation(programID_, name.c_str()), x, y);
     }
 
-    void Shader::setVec3(const std::string &name, const glm::vec3 &value) const {
+    void Shader::setVec3(const std::string &name, const glm::vec3 &value) const
+    {
         glUniform3fv(glGetUniformLocation(programID_, name.c_str()), 1, &value[0]);
     }
 
-    void Shader::setVec3(const std::string &name, float x, float y, float z) const {
+    void Shader::setVec3(const std::string &name, float x, float y, float z) const
+    {
         glUniform3f(glGetUniformLocation(programID_, name.c_str()), x, y, z);
     }
 
-    void Shader::setVec4(const std::string &name, const glm::vec4 &value) const {
+    void Shader::setVec4(const std::string &name, const glm::vec4 &value) const
+    {
         glUniform4fv(glGetUniformLocation(programID_, name.c_str()), 1, &value[0]);
     }
 
-    void Shader::setVec4(const std::string &name, float x, float y, float z, float w) {
+    void Shader::setVec4(const std::string &name, float x, float y, float z, float w) const
+    {
         glUniform4f(glGetUniformLocation(programID_, name.c_str()), x, y, z, w);
     }
 
-    void Shader::setMat2(const std::string &name, const glm::mat2 &mat) const {
+    void Shader::setMat2(const std::string &name, const glm::mat2 &mat) const
+    {
         glUniformMatrix2fv(glGetUniformLocation(programID_, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
 
-    void Shader::setMat3(const std::string &name, const glm::mat3 &mat) const {
+    void Shader::setMat3(const std::string &name, const glm::mat3 &mat) const
+    {
         glUniformMatrix3fv(glGetUniformLocation(programID_, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
 
-    void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const {
+    void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
+    {
         glUniformMatrix4fv(glGetUniformLocation(programID_, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
 
     // MARK: - Private
 
-    bool Shader::checkCompileErrors_(GLuint id, ShaderErrorType type, const GLchar* source) {
+    bool Shader::checkCompileErrors_(GLuint id, ShaderErrorType type, const GLchar* source)
+    {
         GLint isSuccess = 0;
         GLint errorSize = 0;
-        char* error;
+        char error[1024];
 
         // Check compilation
         switch (type) {
         case COMPILATION:
             glGetShaderiv(id, GL_COMPILE_STATUS, &isSuccess);
             glGetShaderiv(id, GL_INFO_LOG_LENGTH, &errorSize);
-
-            error = new char[errorSize + 1];
-            glGetShaderInfoLog(id, errorSize, &errorSize, error);
+            glGetShaderInfoLog(id, errorSize,NULL, error);
         case LINKING:
             glGetProgramiv(id, GL_LINK_STATUS, &isSuccess);
             glGetProgramiv(id, GL_INFO_LOG_LENGTH, &errorSize);
-
-            error = new char[errorSize + 1];
-            glGetProgramInfoLog(id, errorSize, &errorSize, error);
+            glGetProgramInfoLog(id, errorSize, NULL, error);
         }
 
         // If there is an error
-        if (isSuccess != GL_TRUE) {
-            error[errorSize] = '\0';
-
+        if (isSuccess != GL_TRUE)
+        {
             // Display the error
             if (source != nullptr)
                 std::cerr << "from " << source << " => ";
 
             std::cerr << type << " : " << error << std::endl;
 
-            delete[] error;
-
             glDeleteShader(vertexShaderID_);
             glDeleteShader(fragmentShaderID_);
+            if (geometryPath_ != nullptr)
+                glDeleteShader(geometryShaderID_);
             glDeleteProgram(programID_);
 
             return false;
@@ -173,7 +185,8 @@ namespace shader
         return true;
     }
 
-    bool Shader::compileShader_(GLuint &shaderId, GLenum shaderType, const GLchar* source) {
+    bool Shader::compileShader_(GLuint &shaderId, GLenum shaderType, const GLchar* source)
+    {
         // Create the shader
         shaderId = glCreateShader(shaderType);
 
@@ -187,14 +200,14 @@ namespace shader
         return checkCompileErrors_(shaderId, COMPILATION, source);
     }
 
-    bool Shader::linkProgram_() {
+    bool Shader::linkProgram_()
+    {
         // Creation of the program
         programID_ = glCreateProgram();
 
         // Associate the shaders
         glAttachShader(programID_, vertexShaderID_);
         glAttachShader(programID_, fragmentShaderID_);
-
         if (geometryPath_ != nullptr)
             glAttachShader(programID_, geometryShaderID_);
 

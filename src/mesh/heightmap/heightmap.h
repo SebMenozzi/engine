@@ -15,7 +15,7 @@ namespace mesh
     {
     public:
         Heightmap(const char* filepath, float scale, float minHeight, float maxHeight);
-        float getInterpolatedHeight(float x, float z);
+        float getHeight(float x, float z);
     private:
         float scale_;
         float minHeight_;
@@ -26,5 +26,6 @@ namespace mesh
 
         float getTileHeight_(int tileX, int tileZ);
         void addVertices_(float x, float z);
+        glm::vec3 computeNormal_(float x, float z);
     };
 }

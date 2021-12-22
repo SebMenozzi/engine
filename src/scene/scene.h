@@ -18,6 +18,7 @@
 #include "texture.h"
 #include "shader.h"
 #include "types.h"
+#include "constants.h"
 
 #include "cube.h"
 #include "plane.h"
@@ -50,11 +51,15 @@ namespace scene
 
         shader::Shader basicShader_;
         shader::Shader skyboxShader_;
+        shader::Shader heightmapShader_;
+        shader::Shader grassShader_;
+        shader::Shader normalShader_;
 
         bool isWireframe_;
 
         void sdlDie_(const char* message);
         void setOpenGLAttributes_();
         mesh::Skybox createSkybox_();
+        void setCameraView_(shader::Shader& shader, glm::mat4 cameraView);
     };
 }

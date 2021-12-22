@@ -1,12 +1,14 @@
 #version 330 core
 
-in vec3 fragmentTextureCoords;
-
-out vec4 fragmentColor;
-
 uniform samplerCube skybox;
+
+// Inputs from Vertex shader
+in vec3 fragmentPosition;
+
+// Output
+out vec4 fragmentColor;
 
 void main()
 {
-    fragmentColor = texture(skybox, fragmentTextureCoords);
+    fragmentColor = texture(skybox, fragmentPosition);
 }

@@ -4,7 +4,8 @@
 #include <cmath>
 #include <glm/glm.hpp>
 
-namespace utils {
+namespace utils
+{
     const float PI = 3.14159265359;
 
     inline float clamp(float value, float min, float max)
