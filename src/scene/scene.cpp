@@ -38,6 +38,15 @@ namespace scene
 
     bool Scene::init()
     {
+        #ifndef __APPLE__
+        // Init glew
+        if (glewInit())
+        {
+            std::cerr << "Error while initializing glew" << std::endl;
+            return false;
+        }
+        #endif
+
         // Initialize SDL's Video subsystem
         if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
         {
@@ -121,8 +130,8 @@ namespace scene
         glm::mat4 cameraView = glm::mat4(1.0f);
 
         camera::Camera camera(
-            glm::vec3(4, 4, 4), // Camera position in World Space
-            glm::vec3(0, 0, 0), // and looks at the origin
+            glm::vec3(-5, 5, -5), // Camera position
+            glm::vec3(5, 2, 5), // Target position
             glm::vec3(0, 1, 0), // Head is up (set to 0,-1,0 to look upside-down)
             0.1,
             0.1

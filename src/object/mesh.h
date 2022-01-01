@@ -7,7 +7,6 @@
 #endif
 #include <vector>
 #include <glm/glm.hpp>
-#include <optional>
 
 #include "types.h"
 #include "texture.h"
