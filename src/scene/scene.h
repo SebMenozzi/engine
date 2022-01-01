@@ -16,6 +16,7 @@
 #include "input.h"
 #include "camera.h"
 #include "texture.h"
+#include "material.h"
 #include "shader.h"
 #include "types.h"
 #include "constants.h"
@@ -24,8 +25,12 @@
 #include "plane.h"
 #include "skybox.h"
 #include "uv_sphere.h"
-#include "heightmap.h"
-#include "model.h"
+#include "terrain.h"
+#include "ocean.h"
+#include "assimp_model.h"
+#include "fx_gltf_model.h"
+#include "tiny_gltf_model.h"
+#include "object.h"
 
 namespace scene
 {
@@ -51,15 +56,17 @@ namespace scene
 
         shader::Shader basicShader_;
         shader::Shader skyboxShader_;
-        shader::Shader heightmapShader_;
+        shader::Shader terrainShader_;
         shader::Shader grassShader_;
+        shader::Shader oceanShader_;
         shader::Shader normalShader_;
 
         bool isWireframe_;
 
         void sdlDie_(const char* message);
         void setOpenGLAttributes_();
-        mesh::Skybox createSkybox_();
-        void setCameraView_(shader::Shader& shader, glm::mat4 cameraView);
+        object::Skybox createSkybox_();
+        void setCameraView_(shader::Shader* shader, glm::mat4 cameraView);
+        void renderObject_(shader::Shader* shader, object::Object* object, glm::mat4 model);
     };
 }

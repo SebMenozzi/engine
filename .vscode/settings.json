@@ -93,6 +93,8 @@
         "cinttypes": "cpp",
         "*.ipp": "cpp",
         "__memory": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "shared_mutex": "cpp",
+        "forward_list": "cpp"
     }
 }

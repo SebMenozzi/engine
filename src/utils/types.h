@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <complex>
 
 // https://en.wikipedia.org/wiki/C_data_types
 
@@ -15,3 +15,13 @@ typedef signed short sint16; // −32 767 => 32 767
 // 32 bytes
 typedef unsigned long uint32; // 0 => 4 294 967 295
 typedef signed long sint32; // −2 147 483 647 => 2 147 483 64
+
+// Complex type
+typedef std::complex<double> complex;
+
+struct Buffer
+{
+    const uint8* data_ = nullptr;
+    uint32 dataStride_ = 0;
+    uint32 nbElements_ = 0;
+};

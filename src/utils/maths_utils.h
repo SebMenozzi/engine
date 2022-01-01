@@ -28,7 +28,11 @@ namespace utils
 
     inline float scale(float value, float oldMin, float oldMax, float newMin, float newMax)
     {
-        return ((newMax - newMin) * (value - oldMin) / (oldMax - oldMin)) + newMin;
+        return (
+            (newMax - newMin) *
+            ((value - oldMin) / (oldMax - oldMin)) + 
+            newMin
+        );
     }
 
     inline double degrees_to_radians(double degrees)

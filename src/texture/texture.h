@@ -18,12 +18,14 @@ namespace texture
     {
         public:
             Texture(const char* filePath);
+            Texture(SDL_Surface* image);
             ~Texture();
             bool load();
             GLuint getID() const;
 
         private:
             GLuint id_;
-            const char* filePath_;
+            const char* filePath_ = nullptr;
+            SDL_Surface* image_ = nullptr;
     };
 }

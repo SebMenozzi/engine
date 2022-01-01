@@ -8,8 +8,12 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+out vec2 uv;
+
 void main()
 {
+    uv = vertexUV;
+
     vec3 fragmentPosition = vec3(model * vec4(vertexPosition, 1.0));
     gl_Position = projection * view * vec4(fragmentPosition, 1.0);
 }

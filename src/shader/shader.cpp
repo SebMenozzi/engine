@@ -1,4 +1,5 @@
 #include "shader.h"
+
 namespace shader
 {
     // MARK: - Public

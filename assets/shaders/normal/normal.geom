@@ -10,18 +10,17 @@ in vec3 normal[];
 
 const float lineLength = 0.5;
 
-void generateLine(int index)
+void generateLine(int i)
 {
-    gl_Position = gl_in[index].gl_Position;
+    gl_Position = gl_in[i].gl_Position;
     EmitVertex();
-    gl_Position = gl_in[index].gl_Position + vec4(normal[index], 0.0) * lineLength;
+    gl_Position = gl_in[i].gl_Position + vec4(normal[i], 0.0) * lineLength;
     EmitVertex();
     EndPrimitive();
 }
 
 void main()
 {
-    generateLine(0);
-    generateLine(1);
-    generateLine(2);
+    for (int i = 0; i < 3; i++)
+        generateLine(i);
 }

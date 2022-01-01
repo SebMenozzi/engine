@@ -5,7 +5,7 @@ EPITA project that is a simple OpenGL engine.
 # Requirements
 
 - CMake 3.1
-- OpenGL 3.*
+- OpenGL 4.1
 
 # Dependencies
 

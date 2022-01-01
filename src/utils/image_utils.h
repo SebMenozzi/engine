@@ -86,6 +86,26 @@ namespace utils
             }
         }
 
+        SDL_FreeSurface(image);
+
         return invertedImage;
+    }
+
+    inline SDL_Surface* createImage(size_t width, size_t height)
+    {
+        SDL_Surface *image;
+
+        image = SDL_CreateRGBSurface(
+            0, width, height, 32,
+            0, 0, 0, 0
+        );
+
+        if (image == NULL)
+        {
+            SDL_Log("SDL_CreateRGBSurface() failed: %s", SDL_GetError());
+            exit(1);
+        }
+
+        return image;
     }
 }
