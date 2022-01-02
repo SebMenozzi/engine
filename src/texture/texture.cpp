@@ -42,25 +42,16 @@ namespace texture
         if (image_->format->BytesPerPixel == 3)
         {
             internalFormat = GL_RGB;
-
-            if(image_->format->Rmask == 0xff)
-                format = GL_RGB;
-            else
-                format = GL_BGR;
+            format = (image_->format->Rmask == 0xff) ? GL_RGB : GL_BGR;
         }
         else if (image_->format->BytesPerPixel == 4)
         {
             internalFormat = GL_RGBA;
-
-            if(image_->format->Rmask == 0xff)
-                format = GL_RGBA;
-            else
-                format = GL_BGRA;
+            format = (image_->format->Rmask == 0xff) ? GL_RGBA : GL_BGRA;
         }
         else
         {
             std::cerr << "Image internal format not recognized!" << std::endl;
-
             return false;
         }
 

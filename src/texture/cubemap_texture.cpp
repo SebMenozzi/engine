@@ -35,23 +35,15 @@ namespace texture
                 GLenum internalFormat = 0;
                 GLenum format = 0;
 
-                if(image->format->BytesPerPixel == 3)
+                if (image->format->BytesPerPixel == 3)
                 {
                     internalFormat = GL_RGB;
-
-                    if(image->format->Rmask == 0xff)
-                        format = GL_RGB;
-                    else
-                        format = GL_BGR;
+                    format = (image->format->Rmask == 0xff) ? GL_RGB : GL_BGR;
                 }
-                else if(image->format->BytesPerPixel == 4)
+                else if (image->format->BytesPerPixel == 4)
                 {
                     internalFormat = GL_RGBA;
-
-                    if(image->format->Rmask == 0xff)
-                        format = GL_RGBA;
-                    else
-                        format = GL_BGRA;
+                    format = (image->format->Rmask == 0xff) ? GL_RGBA : GL_BGRA;
                 }
                 else
                 {

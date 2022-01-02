@@ -2,15 +2,22 @@
 
 #include <iostream>
 #include <string>
+// SDL2
+#include "SDL.h"
+#include "SDL_image.h"
+// imgui
+#include "imgui.h"
+#include "imgui_impl_sdl.h"
+#include "imgui_impl_opengl3.h"
+// OpenGL
 #ifdef __APPLE__
     #include <OpenGL/gl3.h>
 #else
     #include <GL/glew.h>
 #endif
+// glm
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 
 #include "clock.h"
 #include "input.h"
@@ -28,7 +35,6 @@
 #include "terrain.h"
 #include "ocean.h"
 #include "assimp_model.h"
-#include "fx_gltf_model.h"
 #include "tiny_gltf_model.h"
 #include "object.h"
 
@@ -48,8 +54,8 @@ namespace scene
         int width_;
         int height_;
 
-        SDL_Window* mainWindow_;
-        SDL_GLContext mainContext_;
+        SDL_Window* window_;
+        SDL_GLContext glContext_;
 
         utils::Clock clock_;
         input::Input input_;

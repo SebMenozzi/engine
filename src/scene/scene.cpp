@@ -12,8 +12,8 @@ namespace scene
         title_(title),
         width_(width),
         height_(height),
-        mainWindow_(0),
-        mainContext_(0),
+        window_(0),
+        glContext_(0),
         clock_(),
         input_(),
         basicShader_("assets/shaders/basic/basic.vert", "assets/shaders/basic/basic.frag"),
@@ -29,9 +29,9 @@ namespace scene
     {
         IMG_Quit();
         // Delete our OpengL context
-        SDL_GL_DeleteContext(mainContext_);
+        SDL_GL_DeleteContext(glContext_);
         // Destroy our window
-        SDL_DestroyWindow(mainWindow_);
+        SDL_DestroyWindow(window_);
         // Shutdown SDL2
         SDL_Quit();
     }
@@ -48,7 +48,7 @@ namespace scene
         #endif
 
         // Initialize SDL's Video subsystem
-        if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
         {
             sdlDie_("Unable to initialize SDL");
             return false;
@@ -58,25 +58,26 @@ namespace scene
 
         setOpenGLAttributes_();
 
-        mainWindow_ = SDL_CreateWindow(
+        // Setup window
+        window_ = SDL_CreateWindow(
             title_.c_str(),
             SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED,
             width_,
             height_,
-            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
         );
 
-        if (mainWindow_ == 0)
+        if (window_ == 0)
         {
             sdlDie_("Unable to create the window");
             return false;
         }
 
         // Create our opengl context and attach it to our window
-        mainContext_ = SDL_GL_CreateContext(mainWindow_);
+        glContext_ = SDL_GL_CreateContext(window_);
 
-        if (mainContext_ == 0)
+        if (glContext_ == 0)
         {
             sdlDie_("Unable to create the OpenGL context");
             return false;
@@ -106,6 +107,17 @@ namespace scene
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        // Setup Dear ImGui binding
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ImGui_ImplSDL2_InitForOpenGL(window_, glContext_);
+        const char* glslVersion = "#version 130";
+        ImGui_ImplOpenGL3_Init(glslVersion);
+
+        // Setup Dear ImGui style
+        ImGui::StyleColorsDark();
 
         return true;
     }
@@ -216,7 +228,7 @@ namespace scene
         object::Ocean ocean(utils::OCEAN_SIZE, utils::OCEAN_HEIGHT);
         ocean.load();
 
-        object::FxGLTFModel zenly("assets/models/zenly.glb");
+        object::TinyGLTFModel zenly("assets/models/zenly.glb");
         zenly.load();
 
         bool lastXKeyState = false;
@@ -301,7 +313,7 @@ namespace scene
 
             /* END */
 
-            SDL_GL_SwapWindow(mainWindow_);
+            SDL_GL_SwapWindow(window_);
 
             endLoop = clock_.getTicks();
             durationLoop = endLoop - startLoop;

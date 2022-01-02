@@ -1,0 +1,18 @@
+[submodule "submodules/imgui"]
+	path = submodules/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "submodules/SDL"]
+	path = submodules/SDL
+	url = https://github.com/libsdl-org/SDL
+[submodule "submodules/SDL_image"]
+	path = submodules/SDL_image
+	url = https://github.com/libsdl-org/SDL_image
+[submodule "submodules/json"]
+	path = submodules/json
+	url = https://github.com/nlohmann/json
+[submodule "submodules/tinygltf"]
+	path = submodules/tinygltf
+	url = https://github.com/syoyo/tinygltf
+[submodule "submodules/assimp"]
+	path = submodules/assimp
+	url = https://github.com/assimp/assimp
