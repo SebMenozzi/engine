@@ -67,7 +67,7 @@ include_directories(
 )
 
 # Default compilation flags
-set(CMAKE_CXX_FLAGS "-pedantic -Wall -Wextra -fsanitize=address -Wno-deprecated-declarations")
+set(CMAKE_CXX_FLAGS "-pedantic -Wall -Wextra -fsanitize=address -Wno-deprecated-declarations -fPIC")
 
 # Debug compilation flags
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -DDEBUG")
