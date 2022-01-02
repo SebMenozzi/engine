@@ -1,5 +1,6 @@
 # SDL2
 
+set(CMAKE_CXX_FLAGS "-fPIC")
 set(SDL2_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SDL)
 add_subdirectory(${SDL2_DIR})
 
