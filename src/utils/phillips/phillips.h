@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <vector>
-#include <glm/glm.hpp>
+#include <glm.hpp>
 #include <random>
 
 #include "types.h"

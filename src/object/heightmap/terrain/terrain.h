@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SDL_image.h"
+#include <SDL_image.h>
 
 #include "heightmap.h"
 #include "image_utils.h"

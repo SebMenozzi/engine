@@ -22,21 +22,30 @@ set(TINYGLTF_HEADER_ONLY ON CACHE INTERNAL "" FORCE)
 set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
 
 # Assimp
-
 set(ASSIMP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/assimp)
+set(ASSIMP_NO_EXPORT TRUE CACHE BOOL "x" FORCE)
+set(ASSIMP_BUILD_TESTS FALSE CACHE BOOL "x" FORCE)
+set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT FALSE CACHE BOOL "x" FORCE)
+set(ASSIMP_INSTALL_PDB FALSE CACHE BOOL "x" FORCE)
+set(ASSIMP_BUILD_ZLIB FALSE CACHE BOOL "x" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS FALSE CACHE BOOL "x" FORCE)
+set(ASSIMP_BUILD_COLLADA_IMPORTER TRUE CACHE BOOL "x" FORCE)
+set(ASSIMP_BUILD_OBJ_IMPORTER TRUE CACHE BOOL "x" FORCE)
+set(ASSIMP_BUILD_FBX_IMPORTER TRUE CACHE BOOL "x" FORCE)
+set(ASSIMP_BUILD_BLEND_IMPORTER TRUE CACHE BOOL "x" FORCE)
 add_subdirectory(${ASSIMP_DIR})
 
 # IMGUI
 
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
 set(IMGUI_SOURCES
-    ${IMGUI_DIR}/imgui_demo.cpp
-    ${IMGUI_DIR}/imgui_draw.cpp
-    ${IMGUI_DIR}/imgui_tables.cpp
-    ${IMGUI_DIR}/imgui_widgets.cpp
-    ${IMGUI_DIR}/imgui.cpp
-    ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-    ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp
+  ${IMGUI_DIR}/imgui_demo.cpp
+  ${IMGUI_DIR}/imgui_draw.cpp
+  ${IMGUI_DIR}/imgui_tables.cpp
+  ${IMGUI_DIR}/imgui_widgets.cpp
+  ${IMGUI_DIR}/imgui.cpp
+  ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+  ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp
 )
 
 # GLM
@@ -49,19 +58,17 @@ add_library(STATIC_LIBRARIES STATIC)
 
 target_sources(STATIC_LIBRARIES PRIVATE ${IMGUI_SOURCES})
 target_include_directories(STATIC_LIBRARIES PUBLIC
-    ${IMGUI_DIR}
-    ${IMGUI_DIR}/backends
-    ${SDL2_DIR}/include
-    ${SDL2_IMAGE_DIR}
-    ${JSON_DIR}/include
-    ${TINYGLTF_DIR}
-    ${ASSIMP_DIR}/include
-    ${GLM_DIR}/glm
-    ${GLM_DIR}/glm/gtx
-    ${GLM_DIR}/glm/gtc
-    ${GLM_DIR}/glm/core
+  ${IMGUI_DIR}
+  ${IMGUI_DIR}/backends
+  ${SDL2_DIR}/include
+  ${SDL2_IMAGE_DIR}
+  ${JSON_DIR}/include
+  ${TINYGLTF_DIR}
+  ${ASSIMP_DIR}/include
+  ${CMAKE_BINARY_DIR}/submodules/assimp/include
+  ${GLM_DIR}/glm
 )
 
 find_package(OpenGL REQUIRED)
-target_link_libraries(STATIC_LIBRARIES PUBLIC ${OPENGL_LIBRARIES})
-target_link_libraries(STATIC_LIBRARIES PUBLIC SDL2main SDL2 SDL2_image nlohmann_json tinygltf assimp glm ${CMAKE_DL_LIBS})
+
+target_link_libraries(STATIC_LIBRARIES PRIVATE ${OPENGL_LIBRARIES} SDL2main SDL2 SDL2_image nlohmann_json tinygltf assimp)

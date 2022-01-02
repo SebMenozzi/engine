@@ -6,7 +6,7 @@
 #else
     #include <GL/glew.h>
 #endif
-#include <glm/glm.hpp>
+#include <glm.hpp>
 
 #include "file_utils.h"
 

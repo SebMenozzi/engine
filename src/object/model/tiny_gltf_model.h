@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
-#include "tiny_gltf.h"
+#include <tiny_gltf.h>
 
 #include "texture.h"
 #include "material.h"

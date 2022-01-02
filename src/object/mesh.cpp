@@ -102,6 +102,8 @@ namespace object
                     glDrawElements(GL_TRIANGLES, nbIndices(), GL_UNSIGNED_INT, (void*) 0);
                 else if (indices_.dataStride_ == sizeof(unsigned short))
                     glDrawElements(GL_TRIANGLES, nbIndices(), GL_UNSIGNED_SHORT, (void*) 0);
+                else if (indices_.dataStride_ == sizeof(unsigned char))
+                    glDrawElements(GL_TRIANGLES, nbIndices(), GL_UNSIGNED_BYTE, (void*) 0);
             }
         glBindVertexArray(0);
     }

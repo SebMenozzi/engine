@@ -1,9 +1,9 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
+#include <glm.hpp>
+#include <gtx/transform.hpp>
 
-#include "utils/maths_utils.h"
+#include "maths_utils.h"
 #include "input.h"
 
 namespace camera

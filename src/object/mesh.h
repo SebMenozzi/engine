@@ -6,7 +6,7 @@
     #include <GL/glew.h>
 #endif
 #include <vector>
-#include <glm/glm.hpp>
+#include <glm.hpp>
 
 #include "types.h"
 #include "texture.h"

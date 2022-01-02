@@ -16,8 +16,8 @@
     #include <GL/glew.h>
 #endif
 // glm
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
+#include <glm.hpp>
+#include <gtx/transform.hpp>
 
 #include "clock.h"
 #include "input.h"

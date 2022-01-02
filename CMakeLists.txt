@@ -5,9 +5,6 @@ project(engine
   VERSION 1.0
 )
 
-# Find Glew
-find_package(GLEW REQUIRED)
-
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 
@@ -81,4 +78,4 @@ set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -DRELEASE")
 # Exec
 add_executable(engine)
 target_sources(engine PRIVATE "src/main.cpp" ${SRC_CPP})
-target_link_libraries(engine PRIVATE ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${STATIC_LIBRARIES})
+target_link_libraries(engine PRIVATE ${OPENGL_LIBRARIES} STATIC_LIBRARIES)

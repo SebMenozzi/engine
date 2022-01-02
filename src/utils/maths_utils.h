@@ -2,7 +2,7 @@
 
 #define _USE_MATH_DEFINES // for C++
 #include <cmath>
-#include <glm/glm.hpp>
+#include <glm.hpp>
 
 namespace utils
 {
