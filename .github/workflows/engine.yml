@@ -5,15 +5,14 @@ on: [push]
 env:
   BUILD_TARGET: RELEASE
 
-variables:
-  GIT_SUBMODULE_STRATEGY: recursive
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: recursive
 
     - name: Update Packages
       shell: bash
