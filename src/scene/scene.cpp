@@ -69,8 +69,8 @@ namespace scene
         glEnable(GL_MULTISAMPLE);
 
         // Enable face culling
-        //glDisable(GL_CULL_FACE);
-        //glCullFace(GL_FRONT);
+        glDisable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
 
         // clock wise
         glFrontFace(GL_CW);
@@ -90,19 +90,19 @@ namespace scene
         glm::mat4 projection = glm::perspective(
             glm::radians(45.0f), // The vertical field of view, in radian: the amount of zoom. Usually between 90° (extra wide) and 30° (quite zoomed in)
             16.0f / 9.0f,  // Aspect Ratio. Depends on the size of your window.
-            0.01f, // Near clipping plane. Keep as big as possible, or you'll get precision issues
-            1000.0f // Far clipping plane. Keep as little as possible.
+            0.1f, // Near clipping plane. Keep as big as possible, or you'll get precision issues
+            500.0f // Far clipping plane. Keep as little as possible.
         );
 
         // View Matrix
         glm::mat4 cameraView = glm::mat4(1.0f);
 
         camera::Camera camera(
-            glm::vec3(-5, 5, -5), // Camera position
-            glm::vec3(5, 2, 5), // Target position
+            glm::vec3(4, 2, 0), // Camera position
+            glm::vec3(-4, 2, 4), // Target position
             glm::vec3(0, 1, 0), // Head is up (set to 0,-1,0 to look upside-down)
             0.1,
-            0.1
+            0.01
         );
 
         // Model matrix
@@ -155,12 +155,7 @@ namespace scene
 
         // Load objects
 
-        object::UVSphere moon(1, 40.0, 40.0);
-        moon.setMaterial(new material::Material(
-            glm::vec3(0), 
-            glm::vec3(1, 0, 0), 
-            glm::vec3(0))
-        );
+        object::UVSphere moon(0.1, 20.0, 20.0);
         moon.setDiffuseTexture(moonTexture);
         moon.load();
 
@@ -178,11 +173,8 @@ namespace scene
         terrain.setDiffuseTexture(grassTexture);
         terrain.load();
 
-        object::Ocean ocean(utils::OCEAN_SIZE, utils::OCEAN_HEIGHT);
+        object::Ocean ocean(utils::OCEAN_SIZE, utils::OCEAN_SCALE);
         ocean.load();
-
-        object::TinyGLTFModel zenly("assets/models/zenly.glb");
-        zenly.load();
 
         bool lastXKeyState = false;
         bool lastFKeyState = false;
@@ -270,19 +262,15 @@ namespace scene
 
             // Render Moon
             model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(5.0f, 15.0f, 4.0f));
+            model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f));
             renderObject_(&basicShader_, &moon, model);
             //renderObject_(&normalShader_, &moon, model);
 
             // Render Cube
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(7.0f, 3.0f, 4.0f));
+            model = glm::mat4(0.05f);
+            model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
             renderObject_(&basicShader_, &cube, model);
             //renderObject_(&normalShader_, &cube, model);
-
-            // Render Object
-            model = glm::mat4(1.0f);
-            renderObject_(&basicShader_, &zenly, model);
 
             // Render Terrain
             model = glm::mat4(1.0f);
@@ -290,18 +278,16 @@ namespace scene
 
             // Render Grass
             model = glm::mat4(1.0f);
-            //renderObject_(&grassShader_, &terrain, model);
+            renderObject_(&grassShader_, &terrain, model);
 
             // Render Ocean
-            for (float i = -10; i < 10; ++i)
-            {
-                for (float j = -10; j < 10; ++j)
-                {
-                    model = glm::mat4(1.0f);
-                    model = glm::translate(model, glm::vec3(i * utils::OCEAN_SIZE, 1.0f, j * utils::OCEAN_SIZE));
-                    renderObject_(&oceanShader_, &ocean, model);
-                }
-            }
+
+            for (int x = -10; x <= 10; ++x)
+                for (int z = -10; z <= 10; ++z)
+                    renderOcean_(x, z, &oceanShader_, &ocean);
+
+            ocean.updateHeights(clock_.getTime());
+            ocean.load();
 
             // Render Skybox
             skyboxShader_.use();
@@ -310,7 +296,7 @@ namespace scene
             /* END */
 
             ImGui::Render();
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
             // Swap front and back buffers
             window_.swapBuffers();
@@ -347,5 +333,87 @@ namespace scene
         shader->setMat4("model", model);
         object->useShader(shader);
         object->render();
+    }
+
+    void Scene::renderOcean_(int x, int z, shader::Shader* shader, object::Object* object)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+
+        float symetryX[16] = {
+            -1, 0,  0,  0,
+            0, 1,  0,  0,
+            0, 0, 1,  0,
+            0, 0,  0,  1
+        };
+
+        float symetryZ[16] = {
+            1, 0,  0,  0,
+            0, 1,  0,  0,
+            0, 0, -1,  0,
+            0, 0,  0,  1
+        };
+
+        float symetryXZ[16] = {
+            -1, 0,  0,  0,
+            0,  1,  0,  0,
+            0,  0, -1,  0,
+            0,  0,  0,  1
+        };
+
+        float offset = 3 * utils::OCEAN_SIZE * utils::OCEAN_SCALE;
+
+        // ABCD
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
+        renderObject_(shader, object, model);
+        
+        // CBAD bottom
+
+        model = glm::make_mat4(symetryZ);
+        model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, -z * offset));
+        renderObject_(shader, object, model);
+        
+        // CBAD top
+        model = glm::make_mat4(symetryZ);
+        model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, -z * offset - 2 * utils::OCEAN_SIZE * utils::OCEAN_SCALE));
+        renderObject_(shader, object, model);
+        
+        // ADCB right
+        
+        model = glm::make_mat4(symetryX);
+        model = glm::translate(model, glm::vec3(-x * offset, utils::OCEAN_HEIGHT, z * offset));
+        renderObject_(shader, object, model);
+
+        // ADCB left
+        
+        model = glm::make_mat4(symetryX);
+        model = glm::translate(model, glm::vec3(-x * offset - 2 * utils::OCEAN_SIZE * utils::OCEAN_SCALE, utils::OCEAN_HEIGHT, z * offset));
+        renderObject_(shader, object, model);
+
+        // CDAB 2
+        
+        model = glm::make_mat4(symetryX);
+        model = glm::translate(model, glm::vec3(-x * offset - 2 * utils::OCEAN_SIZE * utils::OCEAN_SCALE, utils::OCEAN_HEIGHT, z * offset));
+        renderObject_(shader, object, model);
+
+        // CDAB bottom right
+        model = glm::make_mat4(symetryXZ);
+        model = glm::translate(model, glm::vec3(-x * offset, utils::OCEAN_HEIGHT, -z * offset));
+        renderObject_(shader, object, model);
+
+        // CDAB bottom left
+        model = glm::make_mat4(symetryXZ);
+        model = glm::translate(model, glm::vec3(-x * offset - 2 * utils::OCEAN_SIZE * utils::OCEAN_SCALE, utils::OCEAN_HEIGHT, -z * offset));
+        renderObject_(shader, object, model);
+
+        // CDAB top right
+        model = glm::make_mat4(symetryXZ);
+        model = glm::translate(model, glm::vec3(-x * offset, utils::OCEAN_HEIGHT, -z * offset - 2 * utils::OCEAN_SIZE* utils::OCEAN_SCALE));
+        renderObject_(shader, object, model);
+
+        // CDAB top left
+        model = glm::make_mat4(symetryXZ);
+        model = glm::translate(model, glm::vec3(-x * offset - 2 * utils::OCEAN_SIZE * utils::OCEAN_SCALE, utils::OCEAN_HEIGHT, -z * offset - 2 * utils::OCEAN_SIZE * utils::OCEAN_SCALE));
+        renderObject_(shader, object, model);
     }
 }

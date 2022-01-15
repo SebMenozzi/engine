@@ -8,7 +8,6 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-// Sent to the Geometry shader
 out vec3 position;
 out vec3 normal;
 out vec3 fragPosition;

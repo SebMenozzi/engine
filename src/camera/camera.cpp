@@ -153,6 +153,6 @@ namespace camera
         }
 
         verticalAngle_ = glm::degrees(verticalAngle_);
-        horizontalAngle_ = glm::radians(horizontalAngle_);
+        horizontalAngle_ = glm::degrees(horizontalAngle_);
     }
 }

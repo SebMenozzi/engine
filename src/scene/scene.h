@@ -17,6 +17,7 @@
 // glm
 #include <glm.hpp>
 #include <gtx/transform.hpp>
+#include <gtc/type_ptr.hpp>
 
 #include "window.h"
 #include "clock.h"
@@ -63,5 +64,6 @@ namespace scene
         object::Skybox createSkybox_();
         void setCameraView_(shader::Shader* shader, glm::mat4 cameraView);
         void renderObject_(shader::Shader* shader, object::Object* object, glm::mat4 model);
+        void renderOcean_(int x, int z, shader::Shader* shader, object::Object* object);
     };
 }

@@ -12,7 +12,7 @@ in vec3 normal[];
 
 out vec2 uv;
 
-const float grassMinSize = 1.0;
+const float grassMinSize = 0.5;
 float grassSize;
 
 float random(vec2 st)
@@ -33,7 +33,7 @@ void generateVertex(int i, vec4 grassPosition, vec2 grassUV, mat4 model)
 void generateGrass(mat4 model)
 {
     vec4 grassPosition[4];
-    float margin = 0.1;
+    float margin = 0.015;
     grassPosition[0] = vec4(-margin, 0.0, 0.0, 0.0); 	// Down left
     grassPosition[1] = vec4(margin, 0.0, 0.0, 0.0);  // Down right
     grassPosition[2] = vec4(-margin, margin, 0.0, 0.0);	// Up left
@@ -42,8 +42,8 @@ void generateGrass(mat4 model)
     vec2 grassUV[4];
     grassUV[0] = vec2(0.0, 0.0); // Down left
     grassUV[1] = vec2(1.0, 0.0); // Down right
-    grassUV[2] = vec2(0.0, 1.0); // Up left
-    grassUV[3] = vec2(1.0, 1.0); // Up right
+    grassUV[2] = vec2(0.0, -1.0); // Up left
+    grassUV[3] = vec2(1.0, -1.0); // Up right
 
     for (int i = 0; i < 4; i++)
     {

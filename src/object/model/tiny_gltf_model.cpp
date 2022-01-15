@@ -112,7 +112,7 @@ namespace object
         size_t meshCount = model->meshes.size();
 
         for (size_t i = 0; i < meshCount; ++i)
-	    {
+        {
             const tinygltf::Mesh mesh = model->meshes[i];
 
             for(size_t j = 0; j< mesh.primitives.size(); ++j)
@@ -141,7 +141,7 @@ namespace object
 
                 if (primitive.indices >= 0)
                     indices = getData_(model, &model->accessors[primitive.indices]);
-
+                    
                 auto mesh = new Mesh(vertices, normals, uvs, indices);
 
                 meshes_.push_back(mesh);

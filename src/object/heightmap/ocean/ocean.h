@@ -1,6 +1,7 @@
 #pragma once
 
 #include "heightmap.h"
+#include "types.h"
 
 namespace object
 {
@@ -9,9 +10,10 @@ namespace object
         public:
             Ocean(
                 float size,
-                float height
+                float scale
             );
+            void updateHeights(uint32 time);
         private:
-            float height_;
+            float scale_;
     };
 }
