@@ -35,6 +35,17 @@ namespace window
         monitor_ =  glfwGetPrimaryMonitor();
         glfwGetWindowSize(window_, &windowSize_[0], &windowSize_[1]);
         glfwGetWindowPos(window_, &windowPos_[0], &windowPos_[1]);
+
+        // Setup Dear ImGui binding
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ImGui::StyleColorsDark();
+
+        const char* glslVersion = "#version 330 core";
+        ImGui_ImplGlfw_InitForOpenGL(window_, true);
+		ImGui_ImplOpenGL3_Init(glslVersion);
     }
 
     void Window::setUpdateViewport(bool update)

@@ -23,6 +23,7 @@ add_subdirectory(${JSON_DIR})
 
 add_library(JSON_LIBRARY INTERFACE)
 target_include_directories(JSON_LIBRARY INTERFACE ${JSON_DIR}/include)
+target_link_libraries(JSON_LIBRARY INTERFACE nlohmann_json::nlohmann_json)
 
 # TinyGLTF
 
@@ -73,10 +74,9 @@ set(IMGUI_SOURCES
 
 add_library(IMGUI_LIBRARY STATIC)
 target_sources(IMGUI_LIBRARY PRIVATE ${IMGUI_SOURCES})
-target_include_directories(IMGUI_LIBRARY PRIVATE
+target_include_directories(IMGUI_LIBRARY PUBLIC
   ${IMGUI_DIR}
   ${IMGUI_DIR}/backends
-  ${GLM_DIR}/glm
 )
 target_link_libraries(IMGUI_LIBRARY PRIVATE GLFW_LIBRARY)
 

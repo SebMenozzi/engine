@@ -33,7 +33,7 @@ namespace object
         for (uint8 *p = data; p != data + totalBytes; p += channels)
         {
             float average = (*p + *(p + 1) + *(p + 2)) / 3;
-            float scaled = utils::scale(average, 0.0, 255.0, 0.0, 1.0);
+            float scaled = utils::scale(average, 0.0, 255.0, minHeight_, maxHeight_);
             tmp.push_back(scaled);
 
             if (i % width == 0)

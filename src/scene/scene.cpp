@@ -42,7 +42,7 @@ namespace scene
         window_.init();
         window_.setInputMode(GLFW_LOCK_KEY_MODS, GLFW_TRUE);
         window_.setInputMode(GLFW_STICKY_KEYS, GLFW_TRUE);
-        window_.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        window_.setInputMode(GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
         // Turn on V-Sync
 		glfwSwapInterval(1);
@@ -69,27 +69,14 @@ namespace scene
         glEnable(GL_MULTISAMPLE);
 
         // Enable face culling
-        //glDisable(GL_CULL_FACE);
-        //glCullFace(GL_FRONT);
+        glDisable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
 
         // clock wise
-        glFrontFace(GL_CW);
+        glFrontFace(GL_CCW);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        /*
-        // Setup Dear ImGui binding
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO(); (void)io;
-        ImGui_ImplSDL2_InitForOpenGL(window_, glContext_);
-        const char* glslVersion = "#version 130";
-        ImGui_ImplOpenGL3_Init(glslVersion);
-
-        // Setup Dear ImGui style
-        ImGui::StyleColorsDark();
-        */
 
         return true;
     }
@@ -200,8 +187,18 @@ namespace scene
         bool lastXKeyState = false;
         bool lastFKeyState = false;
 
+        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
         while (!window_.getShouldClose())
         {
+            // Poll for and process events
+            glfwPollEvents();
+
+            // Start the Dear ImGui frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
             window_.update();
 
             if (window_.getUpdateViewport())
@@ -249,6 +246,26 @@ namespace scene
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            {
+                static float f = 0.0f;
+                static int counter = 0;
+
+                ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+                ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+
+                ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+                ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+                if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+                    counter++;
+                ImGui::SameLine();
+                ImGui::Text("counter = %d", counter);
+
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                ImGui::End();
+            }
+
             /* START */
 
             // Render Moon
@@ -292,11 +309,11 @@ namespace scene
 
             /* END */
 
+            ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
             // Swap front and back buffers
             window_.swapBuffers();
-            
-            // Poll for and process events
-            glfwPollEvents();
         }
 
         glfwTerminate();
