@@ -8,7 +8,7 @@ namespace object
 {
     Skybox::Skybox(
         float size, 
-        std::vector<std::string> filepaths
+        std::vector<const char*> filepaths
     )
     : Cube(size), cubemapTexture_(filepaths) {
         cubemapTexture_.load();

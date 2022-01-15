@@ -1,18 +1,28 @@
-# SDL2
+find_package(OpenGL REQUIRED)
 
-set(CMAKE_CXX_FLAGS "-fPIC")
-set(SDL2_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SDL)
-add_subdirectory(${SDL2_DIR})
+# GLFW
 
-# SDL2 Image
+set(GLFW_DIR ${CMAKE_CURRENT_SOURCE_DIR}/glfw)
+add_subdirectory(${GLFW_DIR})
 
-set(SDL2_IMAGE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SDL_image)
-add_subdirectory(${SDL2_IMAGE_DIR})
+add_library(GLFW_LIBRARY INTERFACE)
+target_include_directories(GLFW_LIBRARY INTERFACE ${GLFW_DIR}/include)
+target_link_libraries(GLFW_LIBRARY INTERFACE ${OPENGL_LIBRARIES} glfw)
+
+# STB
+
+set(STB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+
+add_library(STB_LIBRARY INTERFACE)
+target_include_directories(STB_LIBRARY INTERFACE ${STB_DIR})
 
 # Json
 
 set(JSON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/json)
 add_subdirectory(${JSON_DIR})
+
+add_library(JSON_LIBRARY INTERFACE)
+target_include_directories(JSON_LIBRARY INTERFACE ${JSON_DIR}/include)
 
 # TinyGLTF
 
@@ -22,7 +32,12 @@ add_subdirectory(${TINYGLTF_DIR})
 set(TINYGLTF_HEADER_ONLY ON CACHE INTERNAL "" FORCE)
 set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
 
+add_library(TINYGLTF_LIBRARY INTERFACE)
+target_include_directories(TINYGLTF_LIBRARY INTERFACE ${TINYGLTF_DIR})
+target_link_libraries(TINYGLTF_LIBRARY INTERFACE tinygltf)
+
 # Assimp
+
 set(ASSIMP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/assimp)
 set(ASSIMP_NO_EXPORT TRUE CACHE BOOL "x" FORCE)
 set(ASSIMP_BUILD_TESTS FALSE CACHE BOOL "x" FORCE)
@@ -36,6 +51,13 @@ set(ASSIMP_BUILD_FBX_IMPORTER TRUE CACHE BOOL "x" FORCE)
 set(ASSIMP_BUILD_BLEND_IMPORTER TRUE CACHE BOOL "x" FORCE)
 add_subdirectory(${ASSIMP_DIR})
 
+add_library(ASSIMP_LIBRARY INTERFACE)
+target_include_directories(ASSIMP_LIBRARY INTERFACE 
+  ${ASSIMP_DIR}/include 
+  ${CMAKE_BINARY_DIR}/submodules/assimp/include
+)
+target_link_libraries(ASSIMP_LIBRARY INTERFACE assimp)
+
 # IMGUI
 
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
@@ -46,30 +68,21 @@ set(IMGUI_SOURCES
   ${IMGUI_DIR}/imgui_widgets.cpp
   ${IMGUI_DIR}/imgui.cpp
   ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-  ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp
+  ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
 )
+
+add_library(IMGUI_LIBRARY STATIC)
+target_sources(IMGUI_LIBRARY PRIVATE ${IMGUI_SOURCES})
+target_include_directories(IMGUI_LIBRARY PRIVATE
+  ${IMGUI_DIR}
+  ${IMGUI_DIR}/backends
+  ${GLM_DIR}/glm
+)
+target_link_libraries(IMGUI_LIBRARY PRIVATE GLFW_LIBRARY)
 
 # GLM
 
 set(GLM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/glm)
 
-# STATIC LIBRARIES
-
-add_library(STATIC_LIBRARIES STATIC)
-
-target_sources(STATIC_LIBRARIES PRIVATE ${IMGUI_SOURCES})
-target_include_directories(STATIC_LIBRARIES PUBLIC
-  ${IMGUI_DIR}
-  ${IMGUI_DIR}/backends
-  ${SDL2_DIR}/include
-  ${SDL2_IMAGE_DIR}
-  ${JSON_DIR}/include
-  ${TINYGLTF_DIR}
-  ${ASSIMP_DIR}/include
-  ${CMAKE_BINARY_DIR}/submodules/assimp/include
-  ${GLM_DIR}/glm
-)
-
-find_package(OpenGL REQUIRED)
-
-target_link_libraries(STATIC_LIBRARIES PRIVATE ${OPENGL_LIBRARIES} SDL2main SDL2 SDL2_image nlohmann_json tinygltf assimp)
+add_library(GLM_LIBRARY INTERFACE)
+target_include_directories(GLM_LIBRARY INTERFACE ${GLM_DIR}/glm)

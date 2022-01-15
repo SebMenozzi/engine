@@ -6,8 +6,6 @@
 
 namespace utils
 {
-    const float PI = 3.14159265359;
-
     inline float clamp(float value, float min, float max)
     {
         return std::fmax(min, std::fmin(max, value));
@@ -33,16 +31,6 @@ namespace utils
             ((value - oldMin) / (oldMax - oldMin)) + 
             newMin
         );
-    }
-
-    inline double degrees_to_radians(double degrees)
-    {
-        return degrees * M_PI / 180.0;
-    }
-
-    inline double radians_to_degrees(double radians)
-    {
-        return radians * 180.0 / M_PI;
     }
 
     inline double random_double()

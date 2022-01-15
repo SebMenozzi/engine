@@ -26,7 +26,7 @@ set(SRC_CPP
   src/camera/camera.cpp
   src/utils/clock/clock.cpp
   src/utils/phillips/phillips.cpp
-  src/input/input.cpp
+  src/window/window.cpp
   src/object/cube/cube.cpp
   src/object/plane/plane.cpp
   src/object/skybox/skybox.cpp
@@ -45,12 +45,11 @@ set(SRC_CPP
 
 include_directories(
     src
-    src/stb_image
     src/scene
     src/shader
     src/texture
     src/camera
-    src/input
+    src/window
     src/material
     src/object
     src/object/cube
@@ -67,7 +66,7 @@ include_directories(
 )
 
 # Default compilation flags
-set(CMAKE_CXX_FLAGS "-pedantic -Wall -Wextra -fsanitize=address -Wno-deprecated-declarations")
+set(CMAKE_CXX_FLAGS "-pedantic -Wall -Wextra -fsanitize=address -Wno-deprecated-declarations -Wno-missing-field-initializers -Wno-unused-function -Wno-unused-parameter -Wno-switch -fvisibility=hidden")
 
 # Debug compilation flags
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -DDEBUG")
@@ -78,4 +77,4 @@ set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -DRELEASE")
 # Exec
 add_executable(engine)
 target_sources(engine PRIVATE "src/main.cpp" ${SRC_CPP})
-target_link_libraries(engine PRIVATE ${OPENGL_LIBRARIES} STATIC_LIBRARIES)
+target_link_libraries(engine PRIVATE ${OPENGL_LIBRARIES} GLFW_LIBRARY STB_LIBRARY JSON_LIBRARY TINYGLTF_LIBRARY ASSIMP_LIBRARY IMGUI_LIBRARY GLM_LIBRARY)

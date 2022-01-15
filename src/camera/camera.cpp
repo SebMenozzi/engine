@@ -24,25 +24,25 @@ namespace camera
 
     Camera::~Camera() {}
 
-    void Camera::move(input::Input const &input)
+    void Camera::move(window::Window const &window)
     {
-        if (input.isCursorMoving())
-            orientate_(input.getXRel(), input.getYRel());
+        if (window.isCursorMoving())
+            orientate_(window.getXRel(), window.getYRel());
 
         // Forward
-        if (input.getKey(SDL_SCANCODE_UP) || input.getKey(SDL_SCANCODE_W))
+        if (window.isKeyPressed(GLFW_KEY_UP) || window.isKeyPressed(GLFW_KEY_W))
             position_ = position_ + direction_ * velocity_;
 
         // Backward
-        if (input.getKey(SDL_SCANCODE_DOWN) || input.getKey(SDL_SCANCODE_S))
+        if (window.isKeyPressed(GLFW_KEY_DOWN) || window.isKeyPressed(GLFW_KEY_S))
             position_ = position_ - direction_ * velocity_;
 
         // Left
-        if (input.getKey(SDL_SCANCODE_LEFT) || input.getKey(SDL_SCANCODE_A))
+        if (window.isKeyPressed(GLFW_KEY_LEFT) || window.isKeyPressed(GLFW_KEY_A))
             position_ = position_ + lateralDirection_ * velocity_;
 
         // Right
-        if (input.getKey(SDL_SCANCODE_RIGHT) || input.getKey(SDL_SCANCODE_D))
+        if (window.isKeyPressed(GLFW_KEY_RIGHT) || window.isKeyPressed(GLFW_KEY_D))
             position_ = position_ - lateralDirection_ * velocity_;
 
         targetPosition_ = position_ + direction_;
@@ -93,8 +93,8 @@ namespace camera
         // Limit the angle of the y axis
         verticalAngle_ = utils::clamp(verticalAngle_, -89, 89);
 
-        float verticalAngleRadian = utils::degrees_to_radians(verticalAngle_);
-        float horizontalAngleRadian = utils::degrees_to_radians(horizontalAngle_);
+        float verticalAngleRadian = glm::radians(verticalAngle_);
+        float horizontalAngleRadian = glm::radians(horizontalAngle_);
 
         if (verticalAxis_.x == 1.0)
         {
@@ -152,7 +152,7 @@ namespace camera
                 horizontalAngle_ *= -1;
         }
 
-        verticalAngle_ = utils::radians_to_degrees(verticalAngle_);
-        horizontalAngle_ = utils::radians_to_degrees(horizontalAngle_);
+        verticalAngle_ = glm::degrees(verticalAngle_);
+        horizontalAngle_ = glm::radians(horizontalAngle_);
     }
 }

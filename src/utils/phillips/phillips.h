@@ -6,7 +6,6 @@
 #include <random>
 
 #include "types.h"
-#include "image_utils.h"
 
 namespace utils
 {

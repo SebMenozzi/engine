@@ -1,5 +1,9 @@
 #include "terrain.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_STATIC
+#include <stb_image.h>
+
 namespace object
 {
     Terrain::Terrain(
@@ -13,35 +17,35 @@ namespace object
         minHeight_(minHeight),
         maxHeight_(maxHeight)
     {
-        image_ = IMG_Load(filepath);
+        int width, height, channels;
+        uint8* data = stbi_load(filepath, &width, &height, &channels, 3);
 
-        if (image_ == 0)
+        if (!data)
         {
-            std::cerr << SDL_GetError() << std::endl;
+            std::cerr << "Failure to load the image: " << filepath << std::endl;
             return;
         }
 
+        int totalBytes = width * height * channels;
+        int i = 1;
+
         std::vector<float> tmp;
-
-        for (int y = 0; y < image_->h; y++)
+        for (uint8 *p = data; p != data + totalBytes; p += channels)
         {
-            tmp.clear();
+            float average = (*p + *(p + 1) + *(p + 2)) / 3;
+            float scaled = utils::scale(average, 0.0, 255.0, 0.0, 1.0);
+            tmp.push_back(scaled);
 
-            for (int x = 0; x < image_->w; x++)
+            if (i % width == 0)
             {
-                Uint32 pixel = utils::getPixel(image_, x, y);
-                Uint8 r = 0, g = 0, b = 0;
-                SDL_GetRGB(pixel, image_->format, &r, &g, &b);
-                float greyValue = utils::clamp((r + g + b) / 3, 0.0, 255.0);
-                float height = utils::scale(greyValue, 0.0, 255.0, minHeight_, maxHeight_);
-
-                tmp.push_back(height);
+                heights_.push_back(tmp);
+                tmp.clear();
             }
 
-            heights_.push_back(tmp);
+            ++i;
         }
 
-        size_ = heights_.size();
+        size_ = height;
 
         auto vertices = new std::vector<glm::vec3>();
         auto normals = new std::vector<glm::vec3>();

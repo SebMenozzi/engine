@@ -5,18 +5,18 @@
 #else
     #include <GL/glew.h>
 #endif
-#include <SDL.h>
-#include <SDL_image.h>
 #include <iostream>
 #include <vector>
 #include <string>
+
+#include "types.h"
 
 namespace texture
 {
     class CubemapTexture
     {
         public:
-            CubemapTexture(std::vector<std::string> faces);
+            CubemapTexture(std::vector<const char*> faces);
             ~CubemapTexture();
 
             bool load();
@@ -24,6 +24,6 @@ namespace texture
 
         private:
             GLuint id_;
-            std::vector<std::string> faces_;
+            std::vector<const char*> faces_;
     };
 }

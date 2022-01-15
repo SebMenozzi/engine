@@ -1,10 +1,11 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
 #include <glm.hpp>
 #include <gtx/transform.hpp>
 
 #include "maths_utils.h"
-#include "input.h"
+#include "window.h"
 
 namespace camera
 {
@@ -14,7 +15,7 @@ namespace camera
             Camera(glm::vec3 position, glm::vec3 targetPoint, glm::vec3 verticalAxis, float sensitivity, float velocity);
             ~Camera();
 
-            void move(input::Input const &input);
+            void move(window::Window const &window);
             void lookAt(glm::mat4 &view);
             void setPosition(glm::vec3 position);
             glm::vec3 getPosition();

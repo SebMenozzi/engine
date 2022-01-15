@@ -95,6 +95,10 @@
         "__memory": "cpp",
         "filesystem": "cpp",
         "shared_mutex": "cpp",
-        "forward_list": "cpp"
+        "forward_list": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "regex": "cpp",
+        "span": "cpp"
     }
 }

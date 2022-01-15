@@ -2,13 +2,12 @@
 
 #include <iostream>
 #include <string>
-// SDL2
-#include "SDL.h"
-#include "SDL_image.h"
+// GLFW
+#include <GLFW/glfw3.h>
 // imgui
-#include "imgui.h"
-#include "imgui_impl_sdl.h"
-#include "imgui_impl_opengl3.h"
+//#include "imgui_"
+//#include "imgui_impl_glfw.h"
+//#include "imgui_impl_opengl3.h"
 // OpenGL
 #ifdef __APPLE__
     #include <OpenGL/gl3.h>
@@ -19,8 +18,8 @@
 #include <glm.hpp>
 #include <gtx/transform.hpp>
 
+#include "window.h"
 #include "clock.h"
-#include "input.h"
 #include "camera.h"
 #include "texture.h"
 #include "material.h"
@@ -43,22 +42,11 @@ namespace scene
     class Scene
     {
     public:
-        Scene(std::string title, int width, int height);
-        ~Scene();
-
-        bool init();
-        void loop();
+        Scene();
 
     private:
-        std::string title_;
-        int width_;
-        int height_;
-
-        SDL_Window* window_;
-        SDL_GLContext glContext_;
-
+        window::Window window_;
         utils::Clock clock_;
-        input::Input input_;
 
         shader::Shader basicShader_;
         shader::Shader skyboxShader_;
@@ -68,9 +56,10 @@ namespace scene
         shader::Shader normalShader_;
 
         bool isWireframe_;
+        bool isFullscreen_;
 
-        void sdlDie_(const char* message);
-        void setOpenGLAttributes_();
+        bool init_();
+        void loop_();
         object::Skybox createSkybox_();
         void setCameraView_(shader::Shader* shader, glm::mat4 cameraView);
         void renderObject_(shader::Shader* shader, object::Object* object, glm::mat4 model);

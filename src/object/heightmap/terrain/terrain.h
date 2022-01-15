@@ -1,9 +1,9 @@
 #pragma once
 
-#include <SDL_image.h>
+#include <algorithm>
 
 #include "heightmap.h"
-#include "image_utils.h"
+#include "types.h"
 
 namespace object
 {
@@ -15,7 +15,6 @@ namespace object
             float scale_;
             float minHeight_;
             float maxHeight_;
-            SDL_Surface* image_;
             
             void addVertices_(std::vector<glm::vec3>* vertices, float x, float z);
             glm::vec3 computeNormal_(float x, float z);

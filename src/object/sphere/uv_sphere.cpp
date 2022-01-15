@@ -24,12 +24,12 @@ namespace object
 
         // Generate vertices, normals and texture coords
         float lengthInv = 1.0f / radius_;
-        float sectorStep = 2 * utils::PI / sectorCount_;
-        float stackStep = utils::PI / stackCount_;
+        float sectorStep = 2 * M_PI / sectorCount_;
+        float stackStep = M_PI / stackCount_;
 
         for (int i = 0; i <= stackCount_; ++i)
         {
-            float stackAngle = utils::PI / 2 - i * stackStep; // Starting from pi/2 to -pi/2
+            float stackAngle = M_PI / 2 - i * stackStep; // Starting from pi/2 to -pi/2
 
             float xy = radius_ * cosf(stackAngle); // r * cos(u)
             float z = radius_ * sinf(stackAngle);  // r * sin(u)

@@ -1,9 +1,12 @@
 #include "cubemap_texture.h"
-#include "image_utils.h"
+
+#define STB_IMAGE_STATIC
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 namespace texture
 {
-    CubemapTexture::CubemapTexture(std::vector<std::string> faces):
+    CubemapTexture::CubemapTexture(std::vector<const char*> faces):
         id_(0),
         faces_(faces)
     {}
@@ -22,39 +25,25 @@ namespace texture
         glGenTextures(1, &id_);
 
         glBindTexture(GL_TEXTURE_CUBE_MAP, id_);
+            int width, height, channels;
+
             for (unsigned int i = 0; i < faces_.size(); ++i)
             {
-                SDL_Surface* image = IMG_Load(faces_[i].c_str());
+                uint8* data = stbi_load(faces_[i], &width, &height, &channels, 3);
 
-                if(image == 0)
+                if (data == nullptr)
                 {
-                    std::cerr << "Error : " << SDL_GetError() << std::endl;
+                    std::cerr << "Failure to load the texture: " << faces_[i] << std::endl;
                     return false;
                 }
 
-                GLenum internalFormat = 0;
-                GLenum format = 0;
+                GLenum internalFormat = GL_RGB;
+                GLenum format = GL_RGB;
 
-                if (image->format->BytesPerPixel == 3)
-                {
-                    internalFormat = GL_RGB;
-                    format = (image->format->Rmask == 0xff) ? GL_RGB : GL_BGR;
-                }
-                else if (image->format->BytesPerPixel == 4)
-                {
-                    internalFormat = GL_RGBA;
-                    format = (image->format->Rmask == 0xff) ? GL_RGBA : GL_BGRA;
-                }
-                else
-                {
-                    std::cerr << "Image internal format not recognized!" << std::endl;
-                    SDL_FreeSurface(image);
-                    return false;
-                }
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, image->w, image->h, 0, format, GL_UNSIGNED_BYTE, image->pixels);
-
-                SDL_FreeSurface(image);
+                // Free image
+                stbi_image_free(data);
             }
 
             // Filters

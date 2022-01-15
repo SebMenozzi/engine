@@ -4,18 +4,9 @@ namespace scene
 {
     // MARK: - Public
 
-    Scene::Scene(
-        std::string title, 
-        int width, 
-        int height
-    ): 
-        title_(title),
-        width_(width),
-        height_(height),
-        window_(0),
-        glContext_(0),
+    Scene::Scene():
+        window_(1280, 720, "Engine"),
         clock_(),
-        input_(),
         basicShader_("assets/shaders/basic/basic.vert", "assets/shaders/basic/basic.frag"),
         skyboxShader_("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag"),
         terrainShader_("assets/shaders/terrain/terrain.vert", "assets/shaders/terrain/terrain.frag"),
@@ -23,74 +14,53 @@ namespace scene
         oceanShader_("assets/shaders/ocean/ocean.vert", "assets/shaders/ocean/ocean.frag"),
         normalShader_("assets/shaders/normal/normal.vert", "assets/shaders/normal/normal.frag", "assets/shaders/normal/normal.geom"),
         isWireframe_(false)
-    {}
-
-    Scene::~Scene()
     {
-        IMG_Quit();
-        // Delete our OpengL context
-        SDL_GL_DeleteContext(glContext_);
-        // Destroy our window
-        SDL_DestroyWindow(window_);
-        // Shutdown SDL2
-        SDL_Quit();
+        if (!init_())
+            exit(EXIT_FAILURE);
+
+        loop_();
     }
 
-    bool Scene::init()
+    // MARK: - Private
+
+    bool Scene::init_()
     {
+        // Init glfw
+        if (!glfwInit())
+        {
+            std::cerr << "Error while initializing GLFW3" << std::endl;
+            return false;
+        } 
+
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+        // Setup window
+        window_.init();
+        window_.setInputMode(GLFW_LOCK_KEY_MODS, GLFW_TRUE);
+        window_.setInputMode(GLFW_STICKY_KEYS, GLFW_TRUE);
+        window_.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        // Turn on V-Sync
+		glfwSwapInterval(1);
+
         #ifndef __APPLE__
         // Init glew
-        if (glewInit())
+        if (glewInit() != GLEW_OK)
         {
             std::cerr << "Error while initializing glew" << std::endl;
             return false;
         }
         #endif
 
-        // Initialize SDL's Video subsystem
-        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
-        {
-            sdlDie_("Unable to initialize SDL");
-            return false;
-        }
-
-        IMG_Init(IMG_INIT_PNG);
-
-        setOpenGLAttributes_();
-
-        // Setup window
-        window_ = SDL_CreateWindow(
-            title_.c_str(),
-            SDL_WINDOWPOS_CENTERED,
-            SDL_WINDOWPOS_CENTERED,
-            width_,
-            height_,
-            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
-        );
-
-        if (window_ == 0)
-        {
-            sdlDie_("Unable to create the window");
-            return false;
-        }
-
-        // Create our opengl context and attach it to our window
-        glContext_ = SDL_GL_CreateContext(window_);
-
-        if (glContext_ == 0)
-        {
-            sdlDie_("Unable to create the OpenGL context");
-            return false;
-        }
-
         // Check OpenGL properties
         printf("OpenGL loaded\n");
         printf("Vendor:   %s\n", glGetString(GL_VENDOR));
         printf("Renderer: %s\n", glGetString(GL_RENDERER));
         printf("Version:  %s\n", glGetString(GL_VERSION));
-
-        // This makes our buffer swap syncronized with the monitor's vertical refresh
-        SDL_GL_SetSwapInterval(1);
 
         // Depth Buffer activation
         glEnable(GL_DEPTH_TEST);
@@ -108,6 +78,7 @@ namespace scene
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        /*
         // Setup Dear ImGui binding
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -118,15 +89,13 @@ namespace scene
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
+        */
 
         return true;
     }
 
-    void Scene::loop()
+       void Scene::loop_()
     {
-        uint32 frameRate = 1000 / 60; // 60 fps
-        uint32 startLoop = 0, endLoop = 0, durationLoop = 0;
-
         // Create skybox
         object::Skybox skybox = createSkybox_();
 
@@ -151,9 +120,6 @@ namespace scene
 
         // Model matrix
         glm::mat4 model = glm::mat4(1.0f);
-
-        input_.displayCursor(false);
-        input_.catchCursor(true);
 
         // Load shaders
 
@@ -232,20 +198,24 @@ namespace scene
         zenly.load();
 
         bool lastXKeyState = false;
+        bool lastFKeyState = false;
 
-        while (!input_.hasQuit())
+        while (!window_.getShouldClose())
         {
-            startLoop = clock_.getTicks();
+            window_.update();
 
-            // listen to SDL events
-            input_.updateEvents();
+            if (window_.getUpdateViewport())
+            {
+                window_.resize();
+                window_.setUpdateViewport(false);
+            }
 
-            // press escape to quit
-            if (input_.getKey(SDL_SCANCODE_ESCAPE))
+            // Press escape to quit
+            if (window_.isKeyPressed(GLFW_KEY_ESCAPE))
                 break;
 
             // Toggle Wireframe mode
-            if (!lastXKeyState && input_.getKey(SDL_SCANCODE_X))
+            if (!lastXKeyState && window_.isKeyPressed(GLFW_KEY_X))
             {
                 isWireframe_ = !isWireframe_;
 
@@ -254,9 +224,18 @@ namespace scene
                 else
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             }
-            lastXKeyState = input_.getKey(SDL_SCANCODE_X);
+            lastXKeyState = window_.isKeyPressed(GLFW_KEY_X);
 
-            camera.move(input_);
+            // Toggle Fullscreen
+            if (!lastFKeyState && window_.isKeyPressed(GLFW_KEY_F))
+            {
+                isFullscreen_ = !isFullscreen_;
+
+                window_.setFullscreen(isFullscreen_);
+            }
+            lastFKeyState = window_.isKeyPressed(GLFW_KEY_F);
+
+            camera.move(window_);
 
             // Update camera view (by reference)
             camera.lookAt(cameraView);
@@ -294,7 +273,7 @@ namespace scene
 
             // Render Grass
             model = glm::mat4(1.0f);
-            renderObject_(&grassShader_, &terrain, model);
+            //renderObject_(&grassShader_, &terrain, model);
 
             // Render Ocean
             for (float i = -10; i < 10; ++i)
@@ -313,50 +292,18 @@ namespace scene
 
             /* END */
 
-            SDL_GL_SwapWindow(window_);
-
-            endLoop = clock_.getTicks();
-            durationLoop = endLoop - startLoop;
-
-            // Force frame rate to 60fps
-            if (durationLoop < frameRate)
-                SDL_Delay(frameRate - durationLoop);
+            // Swap front and back buffers
+            window_.swapBuffers();
+            
+            // Poll for and process events
+            glfwPollEvents();
         }
+
+        glfwTerminate();
     }
-
-    // MARK: - Private
-
-    void Scene::sdlDie_(const char* message) {
-        std::cerr << message << ": " << SDL_GetError() << std::endl;
-        SDL_Quit();
-    }
-
-    void Scene::setOpenGLAttributes_() {
-        // Set our OpenGL version.
-        // SDL_GL_CONTEXT_CORE gives us only the newer version, deprecated functions are disabled
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-        // OpenGL 4.1
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-        SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-
-        // Turn on double buffering with a 32 bits
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
-
-        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-    }
-
+        
     object::Skybox Scene::createSkybox_() {
-        std::vector<std::string> faces {
+        std::vector<const char*> faces {
             "assets/textures/skybox/right.png",
             "assets/textures/skybox/left.png",
             "assets/textures/skybox/top.png",

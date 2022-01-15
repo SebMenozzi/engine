@@ -49,8 +49,6 @@ namespace utils
 
     void Phillips::computeH0AndH1_()
     {
-        SDL_Surface* image = utils::createImage(size_, size_);
-
         std::vector<complex> h0tmp;
         std::vector<complex> h1tmp;
 
@@ -76,17 +74,6 @@ namespace utils
                 complex h0 = std::complex(sqrt2 * er * sqrtspec, sqrt2 * ei * sqrtspec);
                 complex h1 = std::conj(h0);
 
-                #if DEBUG
-                Uint32 pixel = utils::getPixel(image, x, z);
-                Uint8 r = 0, g = 0, b = 0;
-                SDL_GetRGB(pixel, image->format, &r, &g, &b);
-
-                Uint8 color = h0.real() * 255;
-
-                pixel = SDL_MapRGB(image->format, color, color, color);
-                utils::putPixel(image, x, z, pixel);
-                #endif
-
                 h0tmp.push_back(h0);
                 h1tmp.push_back(h1);
             }
@@ -94,8 +81,5 @@ namespace utils
             h0_.push_back(h0tmp);
             h1_.push_back(h1tmp);
         }
-
-        IMG_SavePNG(image, "out.png");
-        SDL_FreeSurface(image);
     }
 }

@@ -56,14 +56,13 @@ namespace object
 
     void AssimpModel::loadTextures_(const aiScene* scene)
     {
+        /*
         if (scene->HasTextures())
         {
             for(size_t i = 0; i < scene->mNumTextures; ++i)
 		    {
                 size_t width = scene->mTextures[i]->mWidth;
                 size_t height = scene->mTextures[i]->mHeight;
-
-                SDL_Surface* image = nullptr;
 
                 // If this value is zero, pcData points to an compressed texture
                 if (height == 0)
@@ -100,12 +99,9 @@ namespace object
                 auto texture = new texture::Texture(image);
                 textures_[directory_ + "*" + iStr] = texture;
                 texture->load();
-
-                std::string filename = filepath_.substr(filepath_.find_last_of("/\\") + 1);
-                std::string outputPath = "build/" + filename + "." + iStr + ".png";
-                IMG_SavePNG(image, outputPath.c_str());
             }
         }
+        */
     }
 
     void AssimpModel::loadMeshes_(aiNode* root, const aiScene* scene)

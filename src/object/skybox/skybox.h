@@ -10,7 +10,7 @@ namespace object
     class Skybox: public Cube
     {
         public:
-            Skybox(float size, std::vector<std::string> filepaths);
+            Skybox(float size, std::vector<const char*> filepaths);
             ~Skybox() = default;
 
             void load();
@@ -18,6 +18,6 @@ namespace object
 
         private:
             texture::CubemapTexture cubemapTexture_;
-            std::vector<std::string> faces_;
+            std::vector<const char*> faces_;
     };
 }

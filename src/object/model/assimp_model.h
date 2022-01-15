@@ -11,7 +11,6 @@
 #include "material.h"
 #include "mesh.h"
 #include "object.h"
-#include "image_utils.h"
 
 namespace object
 {

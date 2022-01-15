@@ -7,22 +7,26 @@
 #endif
 #include <iostream>
 #include <string>
-#include "image_utils.h"
+
+#include "types.h"
 
 namespace texture
 {
     class Texture
     {
         public:
-            Texture(const char* filePath);
-            Texture(SDL_Surface* image);
+            Texture(const char* filepath);
+            Texture(uint8* data, int width, int height);
             ~Texture();
             bool load();
             GLuint getID() const;
 
         private:
             GLuint id_;
-            const char* filePath_ = nullptr;
-            SDL_Surface* image_ = nullptr;
+            const char* filepath_ = nullptr;
+
+            uint8* data_ = nullptr;
+            int width_ = -1;
+            int height_ = -1;
     };
 }
