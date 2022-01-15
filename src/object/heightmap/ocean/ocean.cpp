@@ -46,9 +46,15 @@ namespace object
 
     void Ocean::updateHeights(float t)
     {
+        // simple sinusoidal wave formula
+        // a * sin(k_x * x + k_z * z + w * t)
+        const float a = 0.5f;
+        const float k_x = 1 / size_, k_z = 1 / size_;
+        const float w = 1.f;
+
         for (size_t tileX = 0; tileX < size_; tileX++)
             for (size_t tileZ = 0; tileZ < size_; tileZ++)
-                heights_[tileX][tileZ] = height_ + std::sin(t) / 2;
+                heights_[tileX][tileZ] = height_ + a * std::sin(k_x * tileX + k_z * tileZ + w * t);
     }
 
     // FIXME only updates vertices for now
