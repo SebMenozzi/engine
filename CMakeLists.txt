@@ -8,6 +8,11 @@ project(engine
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 
+if (UNIX AND NOT APPLE)
+  # Find Glew
+  find_package(GLEW REQUIRED)
+endif (UNIX)
+
 # Build options
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -77,4 +82,4 @@ set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -DRELEASE")
 # Exec
 add_executable(engine)
 target_sources(engine PRIVATE "src/main.cpp" ${SRC_CPP})
-target_link_libraries(engine PRIVATE ${OPENGL_LIBRARIES} GLFW_LIBRARY STB_LIBRARY JSON_LIBRARY TINYGLTF_LIBRARY ASSIMP_LIBRARY IMGUI_LIBRARY GLM_LIBRARY)
+target_link_libraries(engine PRIVATE ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} GLFW_LIBRARY STB_LIBRARY JSON_LIBRARY TINYGLTF_LIBRARY ASSIMP_LIBRARY IMGUI_LIBRARY GLM_LIBRARY)
