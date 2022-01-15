@@ -2,18 +2,18 @@
 
 #include <iostream>
 #include <string>
-// GLFW
-#include <GLFW/glfw3.h>
-// imgui
-#include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
 // OpenGL
 #ifdef __APPLE__
     #include <OpenGL/gl3.h>
 #else
     #include <GL/glew.h>
 #endif
+// GLFW
+#include <GLFW/glfw3.h>
+// imgui
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 // glm
 #include <glm.hpp>
 #include <gtx/transform.hpp>
