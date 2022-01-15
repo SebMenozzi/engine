@@ -10,7 +10,7 @@ namespace texture
         id_(0),
         filepath_(filepath)
     {
-        data_ = stbi_load(filepath_, &width_, &height_, NULL, 3);
+        data_ = stbi_load(filepath_, &width_, &height_, &nbChannels_, 0);
         if (!data_)
         {
             std::cerr << "Failure to load the texture: " << filepath << std::endl;
@@ -34,8 +34,16 @@ namespace texture
         if (data_ == nullptr)
             return false;
         
-        GLenum internalFormat = GL_RGB;
-        GLenum format = GL_RGB;
+        GLenum format;
+        switch (nbChannels_)
+        {
+        case 3:
+            format = GL_RGB;
+            break;
+        case 4:
+            format = GL_RGBA;
+            break;
+        }
 
         // Delete texture if exists
         if (glIsTexture(id_) == GL_TRUE)
@@ -49,7 +57,7 @@ namespace texture
             glTexImage2D(
                 GL_TEXTURE_2D,
                 0, 
-                internalFormat, 
+                format, 
                 width_, height_, 
                 0, 
                 format, 

@@ -17,8 +17,8 @@ namespace object
         minHeight_(minHeight),
         maxHeight_(maxHeight)
     {
-        int width, height, channels;
-        uint8* data = stbi_load(filepath, &width, &height, &channels, 3);
+        int width, height, nbChannels;
+        uint8* data = stbi_load(filepath, &width, &height, &nbChannels, 0);
 
         if (!data)
         {
@@ -26,26 +26,32 @@ namespace object
             return;
         }
 
-        int totalBytes = width * height * channels;
-        int i = 1;
+        int totalBytes = width * height * nbChannels;
+        int i = 0;
 
         std::vector<float> tmp;
-        for (uint8 *p = data; p != data + totalBytes; p += channels)
-        {
-            float average = (*p + *(p + 1) + *(p + 2)) / 3;
-            float scaled = utils::scale(average, 0.0, 255.0, minHeight_, maxHeight_);
-            tmp.push_back(scaled);
 
-            if (i % width == 0)
-            {
-                heights_.push_back(tmp);
-                tmp.clear();
-            }
+        for (int x = 0; x < width; ++x)
+        {
+            for (int z = 0; z < height; ++z)
+                tmp.push_back(0);
+            heights_.push_back(tmp);
+            tmp.clear();
+        }
+
+        for (uint8 *p = data; p != data + totalBytes; p += nbChannels)
+        {
+            float grayValue = utils::scale(*p, 0.0, 255.0, minHeight_, maxHeight_);
+
+            uint32 x = i % width;
+            uint32 z = height - 1 - i / width;
+
+            heights_[x][z] = grayValue;
 
             ++i;
         }
 
-        size_ = height;
+        size_ = heights_.size();
 
         auto vertices = new std::vector<glm::vec3>();
         auto normals = new std::vector<glm::vec3>();

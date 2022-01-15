@@ -28,5 +28,6 @@ namespace texture
             uint8* data_ = nullptr;
             int width_ = -1;
             int height_ = -1;
+            int nbChannels_ = -1;
     };
 }
