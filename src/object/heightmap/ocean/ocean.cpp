@@ -40,7 +40,7 @@ namespace object
 
     void Ocean::updateHeights(uint32 time)
     {
-        const float a = 0.025f;
+        const float a = 0.015f;
         const float kx = 160.0f;
         const float kz = 200.0f;
         const float w = 0.001f;

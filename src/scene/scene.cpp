@@ -102,7 +102,7 @@ namespace scene
             glm::vec3(-4, 2, 4), // Target position
             glm::vec3(0, 1, 0), // Head is up (set to 0,-1,0 to look upside-down)
             0.1,
-            0.01
+            0.05
         );
 
         // Model matrix
@@ -282,8 +282,8 @@ namespace scene
 
             // Render Ocean
 
-            for (int x = -10; x <= 10; ++x)
-                for (int z = -10; z <= 10; ++z)
+            for (int x = -2; x <= 2; ++x)
+                for (int z = -2; z <= 2; ++z)
                     renderOcean_(x, z, &oceanShader_, &ocean);
 
             ocean.updateHeights(clock_.getTime());
