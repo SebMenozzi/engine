@@ -2,6 +2,8 @@
 
 #include "heightmap.h"
 
+#include <array>
+
 namespace object
 {
     class Ocean : public Heightmap
@@ -11,7 +13,12 @@ namespace object
                 float size,
                 float height
             );
-        private:
-            float height_;
+
+            void updateHeights(float t);
+            void updateVerticesAndNormals();
+
+    private:
+        std::vector<glm::vec3> glmVertices_, glmNormals_;
+        float height_;
     };
 }

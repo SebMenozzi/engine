@@ -296,8 +296,8 @@ namespace scene
             model = glm::mat4(1.0f);
             //renderObject_(&grassShader_, &terrain, model);
 
-            // FIXME this nasty piece of code is to test the time parameter
-            object::Ocean ocean(utils::OCEAN_SIZE, utils::OCEAN_HEIGHT + std::sin(t) / 2);
+            ocean.updateHeights(t);
+            ocean.updateVerticesAndNormals();
             ocean.load();
 
             // Render Ocean
