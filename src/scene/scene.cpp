@@ -292,10 +292,7 @@ namespace scene
             renderObject_(&basicShader_, &plane, model);
 
             // Render Ocean
-
-            for (int x = -4; x <= 4; ++x)
-                for (int z = -4; z <= 4; ++z)
-                    renderOcean_(x, z, &oceanShader_, &ocean);
+            renderOcean_(&oceanShader_, &ocean);
 
             ocean.updateHeights(clock_.getTime());
             ocean.load();
@@ -346,7 +343,7 @@ namespace scene
         object->render();
     }
 
-    void Scene::renderOcean_(int x, int z, shader::Shader* shader, object::Object* object)
+    void Scene::renderOcean_(shader::Shader* shader, object::Object* object)
     {
         glm::mat4 model = glm::mat4(1.0f);
 
@@ -371,60 +368,32 @@ namespace scene
             0,  0,  0,  1
         };
 
-        float offset = 3 * utils::OCEAN_SIZE * utils::OCEAN_SCALE;
+        const auto offset = utils::OCEAN_SCALE * utils::OCEAN_SIZE;
 
-        // ABCD
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
-        renderObject_(shader, object, model);
-        
-        // CBAD bottom
+        for (int x = -2; x <= 2; x+=2)
+        {
+            for (int z = -2; z <= 2; z+=2)
+            {
+                // center
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
+                renderObject_(shader, object, model);
 
-        model = glm::make_mat4(symetryZ);
-        model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, -z * offset));
-        renderObject_(shader, object, model);
-        
-        // CBAD top
-        model = glm::make_mat4(symetryZ);
-        model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, -z * offset - 2 * utils::OCEAN_SIZE * utils::OCEAN_SCALE));
-        renderObject_(shader, object, model);
-        
-        // ADCB right
-        
-        model = glm::make_mat4(symetryX);
-        model = glm::translate(model, glm::vec3(-x * offset, utils::OCEAN_HEIGHT, z * offset));
-        renderObject_(shader, object, model);
+                // right
+                model = glm::make_mat4(symetryZ);
+                model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
+                renderObject_(shader, object, model);
 
-        // ADCB left
-        
-        model = glm::make_mat4(symetryX);
-        model = glm::translate(model, glm::vec3(-x * offset - 2 * utils::OCEAN_SIZE * utils::OCEAN_SCALE, utils::OCEAN_HEIGHT, z * offset));
-        renderObject_(shader, object, model);
+                // up
+                model = glm::make_mat4(symetryX);
+                model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
+                renderObject_(shader, object, model);
 
-        // CDAB 2
-        
-        model = glm::make_mat4(symetryX);
-        model = glm::translate(model, glm::vec3(-x * offset - 2 * utils::OCEAN_SIZE * utils::OCEAN_SCALE, utils::OCEAN_HEIGHT, z * offset));
-        renderObject_(shader, object, model);
-
-        // CDAB bottom right
-        model = glm::make_mat4(symetryXZ);
-        model = glm::translate(model, glm::vec3(-x * offset, utils::OCEAN_HEIGHT, -z * offset));
-        renderObject_(shader, object, model);
-
-        // CDAB bottom left
-        model = glm::make_mat4(symetryXZ);
-        model = glm::translate(model, glm::vec3(-x * offset - 2 * utils::OCEAN_SIZE * utils::OCEAN_SCALE, utils::OCEAN_HEIGHT, -z * offset));
-        renderObject_(shader, object, model);
-
-        // CDAB top right
-        model = glm::make_mat4(symetryXZ);
-        model = glm::translate(model, glm::vec3(-x * offset, utils::OCEAN_HEIGHT, -z * offset - 2 * utils::OCEAN_SIZE* utils::OCEAN_SCALE));
-        renderObject_(shader, object, model);
-
-        // CDAB top left
-        model = glm::make_mat4(symetryXZ);
-        model = glm::translate(model, glm::vec3(-x * offset - 2 * utils::OCEAN_SIZE * utils::OCEAN_SCALE, utils::OCEAN_HEIGHT, -z * offset - 2 * utils::OCEAN_SIZE * utils::OCEAN_SCALE));
-        renderObject_(shader, object, model);
+                // right and up
+                model = glm::make_mat4(symetryXZ);
+                model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
+                renderObject_(shader, object, model);
+            }
+        }
     }
 }
