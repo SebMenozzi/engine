@@ -153,6 +153,9 @@ namespace scene
         auto moonTexture = new texture::Texture("assets/textures/moon.jpg");
         moonTexture->load();
 
+        auto sandTexture = new texture::Texture("assets/textures/sand.jpg");
+        sandTexture->load();
+
         // Load objects
 
         object::UVSphere moon(0.1, 20.0, 20.0);
@@ -169,6 +172,10 @@ namespace scene
             utils::TERRAIN_MIN_HEIGHT,
             utils::TERRAIN_MAX_HEIGHT
         );
+
+        object::Plane plane(100);
+        plane.setDiffuseTexture(sandTexture);
+        plane.load();
 
         terrain.setDiffuseTexture(grassTexture);
         terrain.load();
@@ -280,10 +287,14 @@ namespace scene
             model = glm::mat4(1.0f);
             renderObject_(&grassShader_, &terrain, model);
 
+            // Render Plane
+            model = glm::mat4(1.0f);
+            renderObject_(&basicShader_, &plane, model);
+
             // Render Ocean
 
-            for (int x = -2; x <= 2; ++x)
-                for (int z = -2; z <= 2; ++z)
+            for (int x = -4; x <= 4; ++x)
+                for (int z = -4; z <= 4; ++z)
                     renderOcean_(x, z, &oceanShader_, &ocean);
 
             ocean.updateHeights(clock_.getTime());

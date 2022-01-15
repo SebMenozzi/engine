@@ -36,11 +36,11 @@ namespace object
 
     float Heightmap::getTileHeight_(int tileX, int tileZ)
     {
-        if (tileX >= size_) return 0;
-        if (tileZ >= size_) return 0;
+        if (tileX >= size_) return heights_[size_ - 1][size_ - 1];
+        if (tileZ >= size_) return heights_[size_ - 1][size_ - 1];
 
-        if (tileX < 0) return 0;
-        if (tileZ < 0) return 0;
+        if (tileX < 0) return heights_[0][0];
+        if (tileZ < 0) return heights_[0][0];
 
         return heights_[tileX][tileZ];
     }
