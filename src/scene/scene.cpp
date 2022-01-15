@@ -246,15 +246,18 @@ namespace scene
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            static float t = 0.0f;
+            static float frame_period;
+
             {
-                static float f = 0.0f;
                 static int counter = 0;
+                frame_period = ImGui::GetIO().DeltaTime;
 
                 ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
                 ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
 
-                ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+                ImGui::SliderFloat("time", &t, 0.0f, utils::MAX_TIME);            // Edit time float, incremented at each frame
                 ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
                 if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
@@ -265,6 +268,7 @@ namespace scene
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
                 ImGui::End();
             }
+
 
             /* START */
 
@@ -292,6 +296,10 @@ namespace scene
             model = glm::mat4(1.0f);
             //renderObject_(&grassShader_, &terrain, model);
 
+            // FIXME this nasty piece of code is to test the time parameter
+            object::Ocean ocean(utils::OCEAN_SIZE, utils::OCEAN_HEIGHT + std::sin(t) / 2);
+            ocean.load();
+
             // Render Ocean
             for (float i = -10; i < 10; ++i)
             {
@@ -311,6 +319,11 @@ namespace scene
 
             ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+            if (t >= utils::MAX_TIME)
+                t = 0;
+            else
+                t += frame_period;
 
             // Swap front and back buffers
             window_.swapBuffers();

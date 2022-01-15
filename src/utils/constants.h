@@ -11,4 +11,6 @@ namespace utils
     const float OCEAN_SIZE = 16.0;
     const float OCEAN_HEIGHT = 0.4;
     const float OCEAN_SCALE = 0.1;
+
+    const float MAX_TIME = 100;
 }
