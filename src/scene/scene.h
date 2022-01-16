@@ -49,21 +49,55 @@ namespace scene
         window::Window window_;
         utils::Clock clock_;
 
-        shader::Shader basicShader_;
-        shader::Shader skyboxShader_;
-        shader::Shader terrainShader_;
-        shader::Shader grassShader_;
-        shader::Shader oceanShader_;
-        shader::Shader normalShader_;
+        // Shaders
+        shader::Shader* textureShader_;
+        shader::Shader* skyboxShader_;
+        shader::Shader* terrainShader_;
+        shader::Shader* grassShader_;
+        shader::Shader* oceanShader_;
+        shader::Shader* normalShader_;
+        shader::Shader* materialShader_;
+        shader::Shader* depthShader_;
+        shader::Shader* sandShader_;
+
+        // Textures
+        texture::Texture* grassTexture_;
+        texture::Texture* woodTexture_;
+        texture::Texture* moonTexture_;
+        texture::Texture* sandTexture_;
+        texture::Texture* noiseTexture_;
+
+        // Objects
+        object::Skybox* skybox_;
+        object::UVSphere* moon_;
+        object::Cube* cube_;
+        object::Terrain* terrain_;
+        object::Plane* sand_;
+        object::Ocean* ocean_;
+        object::AssimpModel* titanic_;
+        object::AssimpModel* shark_;
+
+        GLuint depthMapFboID_;
 
         bool isWireframe_;
         bool isFullscreen_;
+        bool displayNormals_;
+        bool displayDepth_;
 
         bool init_();
+        void loadShaders_(
+            glm::mat4 projection,
+            glm::vec3 sunPosition,
+            glm::vec3 cameraPosition
+        );
+        void loadTextures_();
+        void loadObjects_();
         void loop_();
-        object::Skybox createSkybox_();
         void setCameraView_(shader::Shader* shader, glm::mat4 cameraView);
         void renderObject_(shader::Shader* shader, object::Object* object, glm::mat4 model);
-        void renderOcean_(shader::Shader* shader, object::Object* object);
+        void renderOcean_();
+        void renderFog_();
+        void render_(bool displayNormals);
+        void createDepthMap_();
     };
 }

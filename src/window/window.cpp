@@ -10,13 +10,6 @@ namespace window
         title_(title)
     {}
 
-    static void setWindowSizeCallback_(GLFWwindow* window, int width, int height)
-    {
-        void *ptr = glfwGetWindowUserPointer(window);
-        if (Window *windowPtr = static_cast<Window*>(ptr))
-            windowPtr->setUpdateViewport(true);
-    }
-
     void Window::init()
     {
         window_ = glfwCreateWindow(width_, height_, title_, NULL, NULL);
@@ -29,8 +22,6 @@ namespace window
         }
 
         glfwMakeContextCurrent(window_);
-        glfwSetWindowUserPointer(window_, this);
-        glfwSetWindowSizeCallback(window_, setWindowSizeCallback_);
 
         monitor_ =  glfwGetPrimaryMonitor();
         glfwGetWindowSize(window_, &windowSize_[0], &windowSize_[1]);
@@ -48,21 +39,9 @@ namespace window
 		ImGui_ImplOpenGL3_Init(glslVersion);
     }
 
-    void Window::setUpdateViewport(bool update)
-    {
-        updateViewport_ = update;
-    }
-
     void Window::swapBuffers()
     {
         glfwSwapBuffers(window_);
-    }
-
-    void Window::resize()
-    {
-        int width, height;
-        glfwGetFramebufferSize(window_, &width, &height);
-        glViewport(0, 0, width, height);
     }
 
     void Window::setInputMode(int mode, int value)
@@ -101,13 +80,18 @@ namespace window
 
     void Window::update()
     {
+        // Set cursor position
         double x, y;
         glfwGetCursorPos(window_, &x, &y);
-
         xPrev_ = x_;
         yPrev_ = y_;
         x_ = x;
         y_ = y;
+
+        // Set Viewport
+        int width, height;
+        glfwGetFramebufferSize(window_, &width, &height);
+        glViewport(0, 0, width, height);
     }
 
     bool Window::getShouldClose() const
@@ -151,10 +135,5 @@ namespace window
     double Window::getYRel() const
     {
         return y_ - yPrev_;
-    }
-
-    bool Window::getUpdateViewport() const
-    {
-        return updateViewport_;
     }
 }

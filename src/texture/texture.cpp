@@ -6,9 +6,10 @@
 
 namespace texture
 {
-    Texture::Texture(const char* filepath): 
+    Texture::Texture(const char* filepath, const char* name): 
         id_(0),
-        filepath_(filepath)
+        filepath_(filepath),
+        name_(name)
     {
         data_ = stbi_load(filepath_, &width_, &height_, &nbChannels_, 0);
         if (!data_)
@@ -37,6 +38,9 @@ namespace texture
         GLenum format;
         switch (nbChannels_)
         {
+        case 1:
+            format = GL_RED;
+            break;
         case 3:
             format = GL_RGB;
             break;
@@ -80,5 +84,10 @@ namespace texture
     GLuint Texture::getID() const
     {
         return id_;
+    }
+
+    const char* Texture::getName() const
+    {
+        return name_;
     }
 }

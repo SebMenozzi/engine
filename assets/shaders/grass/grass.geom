@@ -8,7 +8,6 @@ uniform mat4 projection;
 uniform float grassMinHeight;
 
 in vec3 position[];
-in vec3 normal[];
 
 out vec2 uv;
 

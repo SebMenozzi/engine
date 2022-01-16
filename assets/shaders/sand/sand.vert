@@ -8,10 +8,12 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-out vec3 position;
+out vec2 uv;
 
 void main()
 {
-    position = vec3(model * vec4(vertexPosition, 1.0));
+    vec3 position = vec3(model * vec4(vertexPosition, 1.0));
+    uv = vertexUV;
+    
     gl_Position = projection * view * vec4(position, 1.0);
 }

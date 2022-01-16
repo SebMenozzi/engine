@@ -26,8 +26,8 @@ namespace object
             void loadTextures_(const aiScene* scene);
             void loadMeshes_(aiNode* root, const aiScene* scene);
             Mesh* convertMesh_(const aiMesh* aiMesh, const aiMaterial* aiMaterial);
-            texture::Texture* getTexture_(const std::string& filepath);
-            std::string getTextureName_(const aiMaterial* aiMaterial,  aiTextureType type);
+            texture::Texture* getTexture_(const std::string& filepath, const std::string& name);
+            std::string getTexturePath_(const aiMaterial* aiMaterial,  aiTextureType type);
             void addMaterialToMesh_(Mesh* mesh, const aiMaterial* aiMaterial);
             void addTextureToMesh_(Mesh* mesh, const std::string& filepath);
 

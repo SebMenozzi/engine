@@ -120,7 +120,7 @@ namespace object
             loadMeshes_(root->mChildren[i], scene);
     }
 
-    std::string AssimpModel::getTextureName_(
+    std::string AssimpModel::getTexturePath_(
         const aiMaterial* aiMaterial, 
         aiTextureType type
     ) 
@@ -135,15 +135,15 @@ namespace object
         return directory_ + str;
     }
 
-    texture::Texture* AssimpModel::getTexture_(const std::string& filepath)
+    texture::Texture* AssimpModel::getTexture_(const std::string& filepath, const std::string& name)
     {
         texture::Texture* texture;
 
         if (textures_[filepath])
-            texture = textures_[filepath.c_str()];
+            texture = textures_[filepath];
         else
         {
-            texture = new texture::Texture(filepath.c_str());
+            texture = new texture::Texture(filepath.c_str(), name.c_str());
             texture->load();
         }
 
@@ -182,11 +182,14 @@ namespace object
             
             // Normals
             const aiVector3t<float>& n = aiMesh->mNormals[i];
-            normals->push_back(glm::vec3(n.x, n.y, n.z));
+            normals->push_back(glm::normalize(glm::vec3(n.x, n.y, n.z)));
 
             // Uvs
-            const aiVector3t<float>& uv = aiMesh->mTextureCoords[0][i];
-            uvs->push_back(glm::vec2(uv.x, uv.y));
+            if (aiMesh->mTextureCoords[0] != nullptr)
+            {
+                const aiVector3t<float>& uv = aiMesh->mTextureCoords[0][i];
+                uvs->push_back(glm::vec2(uv.x, uv.y));
+            }
         }
 
         // Indices
@@ -203,25 +206,25 @@ namespace object
 
         // Textures
 
-        std::string diffusePath = getTextureName_(aiMaterial, aiTextureType_DIFFUSE);
+        std::string diffusePath = getTexturePath_(aiMaterial, aiTextureType_DIFFUSE);
         if (!diffusePath.empty())
         {
-            auto diffuseTexture = getTexture_(diffusePath);
-            mesh->setDiffuseTexture(diffuseTexture);
+            auto diffuseTexture = getTexture_(diffusePath, "diffuseTexture");
+            mesh->addTexture(diffuseTexture);
         }
 
-        std::string specularPath = getTextureName_(aiMaterial, aiTextureType_SPECULAR);
+        std::string specularPath = getTexturePath_(aiMaterial, aiTextureType_SPECULAR);
         if (!specularPath.empty())
         {
-            auto specularTexture = getTexture_(specularPath);
-            mesh->setSpecularTexture(specularTexture);
+            auto specularTexture = getTexture_(specularPath, "specularTexture");
+            mesh->addTexture(specularTexture);
         }
 
-        std::string normalPath = getTextureName_(aiMaterial, aiTextureType_NORMALS);
+        std::string normalPath = getTexturePath_(aiMaterial, aiTextureType_NORMALS);
         if (!normalPath.empty())
         {
-            auto normalTexture = getTexture_(normalPath);
-            mesh->setNormalTexture(normalTexture);
+            auto normalTexture = getTexture_(normalPath, "normalTexture");
+            mesh->addTexture(normalTexture);
         }
 
         // Material

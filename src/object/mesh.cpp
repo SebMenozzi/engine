@@ -75,22 +75,10 @@ namespace object
 
     void Mesh::render()
     {   
-        if (diffuseTexture_ != nullptr)
+        for (int i = 0; i < textures_.size(); ++i)
         {
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, diffuseTexture_->getID());
-        }
-
-        if (specularTexture_ != nullptr)
-        {
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, specularTexture_->getID());
-        }
-
-        if (normalTexture_ != nullptr)
-        {
-            glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, normalTexture_->getID());
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, textures_[i]->getID());
         }
     
         glBindVertexArray(vaoID_);
@@ -118,19 +106,9 @@ namespace object
         return indices_.nbElements_;
     }
 
-    void Mesh::setDiffuseTexture(texture::Texture* texture)
+    void Mesh::addTexture(texture::Texture* texture)
     {
-        diffuseTexture_ = texture;
-    }
-
-    void Mesh::setSpecularTexture(texture::Texture* texture)
-    {
-        specularTexture_ = texture;
-    }
-
-    void Mesh::setNormalTexture(texture::Texture* texture)
-    {
-        normalTexture_ = texture;
+        textures_.push_back(texture);
     }
 
     void Mesh::setMaterial(material::Material* material)
@@ -148,9 +126,9 @@ namespace object
         }
         else
         {
-            shader->setVec3("ambientColor", glm::vec3(0));
-            shader->setVec3("diffuseColor", glm::vec3(0));
-            shader->setVec3("specularColor", glm::vec3(0));
+            shader->setVec3("ambientColor", glm::vec3(0.0, 0.0, 1.0));
+            shader->setVec3("diffuseColor", glm::vec3(0.0, 0.0, 1.0));
+            shader->setVec3("specularColor", glm::vec3(0.0, 0.0, 1.0));
         }
     }
 }

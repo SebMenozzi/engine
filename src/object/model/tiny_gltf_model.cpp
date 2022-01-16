@@ -139,9 +139,11 @@ namespace object
                         uvs = buffer;
                 }
 
+                std::cout << primitive.indices << std::endl;
+
                 if (primitive.indices >= 0)
                     indices = getData_(model, &model->accessors[primitive.indices]);
-                    
+
                 auto mesh = new Mesh(vertices, normals, uvs, indices);
 
                 meshes_.push_back(mesh);

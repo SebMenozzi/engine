@@ -18,9 +18,7 @@ namespace window
         Window(uint32 width, uint32 height, const char* title);
 
         void init();
-        void setUpdateViewport(bool update);
         void swapBuffers();
-        void resize();
         void setInputMode(int mode, int value);
         void shouldClose();
         void setFullscreen(bool fullscreen);
@@ -34,7 +32,6 @@ namespace window
         double getY() const;
         double getXRel() const;
         double getYRel() const;
-        bool getUpdateViewport() const;
 
     private:
         uint32 width_;
@@ -51,7 +48,5 @@ namespace window
 
         std::array<int, 2> windowPos_ { 0, 0 };
         std::array<int, 2> windowSize_ { 0, 0 };
-
-        bool updateViewport_ = true;
     };
 }

@@ -8,7 +8,7 @@ uniform mat4 projection;
 
 in vec3 normal[];
 
-const float lineLength = 0.5;
+const float lineLength = 0.01;
 
 void generateLine(int i)
 {

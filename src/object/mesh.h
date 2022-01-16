@@ -34,9 +34,7 @@ namespace object
             size_t nbVertices();
             size_t nbIndices();
 
-            void setDiffuseTexture(texture::Texture* texture);
-            void setSpecularTexture(texture::Texture* texture);
-            void setNormalTexture(texture::Texture* texture);
+            void addTexture(texture::Texture* texture);
 
             void setMaterial(material::Material* material);
         protected:
@@ -49,9 +47,7 @@ namespace object
             GLuint vboID_;
             GLuint eboID_;
 
-            texture::Texture* diffuseTexture_ = nullptr;
-            texture::Texture* specularTexture_ = nullptr;
-            texture::Texture* normalTexture_ = nullptr;
+            std::vector<texture::Texture*> textures_;
 
             material::Material* material_ = nullptr;
     };
