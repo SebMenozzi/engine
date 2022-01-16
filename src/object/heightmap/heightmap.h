@@ -11,10 +11,10 @@ namespace object
     class Heightmap : public Mesh
     {
         public:
-            Heightmap(float size);
+            Heightmap(uint32 size);
             float getHeight(float x, float z);
         protected:
-            float size_;
+            uint32 size_;
             std::vector<std::vector<float> > heights_;
 
             float getTileHeight_(int tileX, int tileZ);

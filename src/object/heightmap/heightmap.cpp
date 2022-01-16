@@ -3,7 +3,7 @@
 namespace object
 {
     Heightmap::Heightmap(
-        float size
+        uint32 size
     ): 
         Mesh(),
         size_(size)
