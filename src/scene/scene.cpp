@@ -9,7 +9,8 @@ namespace scene
         clock_(),
         isWireframe_(false),
         isFullscreen_(false),
-        displayNormals_(false)
+        displayNormals_(false),
+        displayDepth_(false)
     {
         if (!init_())
             exit(EXIT_FAILURE);
@@ -77,23 +78,16 @@ namespace scene
         return true;
     }
 
-    void Scene::loadShaders_(
-        glm::mat4 projection,
-        glm::vec3 sunPosition,
-        glm::vec3 cameraPosition
-    )
+    void Scene::loadShaders_()
     {
         skyboxShader_ = new shader::Shader("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag");
         skyboxShader_->load();
         skyboxShader_->use();
-        skyboxShader_->setMat4("projection", projection);
         skyboxShader_->setInt("skybox", 0);
 
         textureShader_ = new shader::Shader("assets/shaders/texture/texture.vert", "assets/shaders/texture/texture.frag");
         textureShader_->load();
         textureShader_->use();
-        textureShader_->setVec3("fragmentColor", glm::vec3(1.0f, 0.0f, 0.0f));
-        textureShader_->setMat4("projection", projection);
         textureShader_->setInt("diffuseTexture", 0);
         textureShader_->setInt("specularTexture", 1);
         textureShader_->setInt("normalTexture", 2);
@@ -101,45 +95,36 @@ namespace scene
         terrainShader_ = new shader::Shader("assets/shaders/terrain/terrain.vert", "assets/shaders/terrain/terrain.frag");
         terrainShader_->load();
         terrainShader_->use();
-        terrainShader_->setMat4("projection", projection);
         terrainShader_->setFloat("maxHeight", utils::TERRAIN_MAX_HEIGHT);
+        terrainShader_->setInt("depthMapTexture", 1);
 
         grassShader_ = new shader::Shader("assets/shaders/grass/grass.vert", "assets/shaders/grass/grass.frag", "assets/shaders/grass/grass.geom");
         grassShader_->load();
         grassShader_->use();
-        grassShader_->setMat4("projection", projection);
         grassShader_->setInt("grassTexture", 0);
         grassShader_->setFloat("grassMinHeight", utils::TERRAIN_GRASS_MIN_HEIGHT);
 
         oceanShader_ = new shader::Shader("assets/shaders/ocean/ocean.vert", "assets/shaders/ocean/ocean.frag");
         oceanShader_->load();
         oceanShader_->use();
-        oceanShader_->setMat4("projection", projection);
-        oceanShader_->setVec3("cameraPosition", cameraPosition);
+        oceanShader_->setInt("depthMapTexture", 1);
 
         normalShader_ = new shader::Shader("assets/shaders/normal/normal.vert", "assets/shaders/normal/normal.frag", "assets/shaders/normal/normal.geom");
         normalShader_->load();
         normalShader_->use();
-        normalShader_->setMat4("projection", projection);
 
         materialShader_ = new shader::Shader("assets/shaders/material/material.vert", "assets/shaders/material/material.frag");
         materialShader_->load();
         materialShader_->use();
-        materialShader_->setMat4("projection", projection);
-        materialShader_->setVec3("cameraPosition", cameraPosition);
-        materialShader_->setVec3("sunPosition", sunPosition);
 
-        depthShader_ = new shader::Shader("assets/shaders/depth/depth.vert", "assets/shaders/depth/depth.frag");
+        depthShader_ = new shader::Shader("assets/shaders/depth/depth.vert", "assets/shaders/depth/depth.frag", "assets/shaders/depth/depth.geom");
         depthShader_->load();
         depthShader_->use();
-        depthShader_->setMat4("projection", projection);
 
         sandShader_ = new shader::Shader("assets/shaders/sand/sand.vert", "assets/shaders/sand/sand.frag");
         sandShader_->load();
         sandShader_->use();
-        sandShader_->setMat4("projection", projection);
-        sandShader_->setInt("diffuseTexture", 0);
-        sandShader_->setInt("specularTexture", 1);
+        sandShader_->setInt("sandTexture", 0);
     }
 
     void Scene::loadTextures_()
@@ -190,7 +175,7 @@ namespace scene
         terrain_->addTexture(grassTexture_);
         terrain_->load();
 
-        sand_ = new object::Plane(100);
+        sand_ = new object::Plane(10);
         sand_->addTexture(sandTexture_);
         sand_->load();
 
@@ -206,7 +191,8 @@ namespace scene
 
     void Scene::loop_()
     {
-        glm::vec3 sunPosition = glm::vec3(0, 10, 0);
+        glm::vec3 sunPosition = glm::vec3(0.0f, 1.0f, 0.0f);
+        glm::vec3 sunColor = glm::vec3(1.0, 0.9961, 0.7765);
 
         // Projection matrix
         glm::mat4 cameraProjection = glm::perspective(
@@ -228,10 +214,29 @@ namespace scene
             0.05
         );
 
-        loadShaders_(cameraProjection, cameraPosition, sunPosition);
+        loadShaders_();
         loadTextures_();
         loadObjects_();
+
         createDepthMap_();
+
+        float shadowNearPlane = 1.0f;
+        float shadowFarPlane  = 25.0f;
+
+        glm::mat4 shadowProjection = glm::perspective(
+            glm::radians(90.0f), 
+            1.0f, 
+            shadowNearPlane, 
+            shadowFarPlane
+        );
+
+        std::vector<glm::mat4> shadowTransforms;
+        shadowTransforms.push_back(shadowProjection * glm::lookAt(sunPosition, sunPosition + glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
+        shadowTransforms.push_back(shadowProjection * glm::lookAt(sunPosition, sunPosition + glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
+        shadowTransforms.push_back(shadowProjection * glm::lookAt(sunPosition, sunPosition + glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)));
+        shadowTransforms.push_back(shadowProjection * glm::lookAt(sunPosition, sunPosition + glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)));
+        shadowTransforms.push_back(shadowProjection * glm::lookAt(sunPosition, sunPosition + glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
+        shadowTransforms.push_back(shadowProjection * glm::lookAt(sunPosition, sunPosition + glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f)));
 
         bool lastXKeyState = false;
         bool lastFKeyState = false;
@@ -242,15 +247,17 @@ namespace scene
 
         while (!window_.getShouldClose())
         {
-            // Render scene to depth cubemap
-
-            glViewport(0, 0, 1024, 1024);
+            glViewport(0, 0, 512, 512);
             glBindFramebuffer(GL_FRAMEBUFFER, depthMapFboID_);
                 glClear(GL_DEPTH_BUFFER_BIT);
 
                 depthShader_->use();
+                for (uint32 i = 0; i < 6; ++i)
+                    depthShader_->setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+                depthShader_->setFloat("farPlane", shadowFarPlane);
+                depthShader_->setVec3("sunPosition", sunPosition);
 
-                render_(false);
+                render_(false, true);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -302,18 +309,33 @@ namespace scene
             lastCKeyState = window_.isKeyPressed(GLFW_KEY_C);
 
             camera.move(window_);
-
-            // Update camera view (by reference)
             camera.lookAt(cameraView);
-            setCameraView_(textureShader_, cameraView);
-            setCameraView_(terrainShader_, cameraView);
-            setCameraView_(grassShader_, cameraView);
-            setCameraView_(oceanShader_, cameraView);
-            setCameraView_(normalShader_, cameraView);
-            setCameraView_(materialShader_, cameraView);
-            setCameraView_(depthShader_, cameraView);
-            setCameraView_(sandShader_, cameraView);
-            setCameraView_(skyboxShader_, glm::mat4(glm::mat3(cameraView))); // Removes any translation
+
+            setCameraUniformsToShader_(textureShader_, cameraView, cameraProjection, cameraPosition);
+            setCameraUniformsToShader_(terrainShader_, cameraView, cameraProjection, cameraPosition);
+            setCameraUniformsToShader_(grassShader_, cameraView, cameraProjection, cameraPosition);
+            setCameraUniformsToShader_(oceanShader_, cameraView, cameraProjection, cameraPosition);
+            setCameraUniformsToShader_(normalShader_, cameraView, cameraProjection, cameraPosition);
+            setCameraUniformsToShader_(materialShader_, cameraView, cameraProjection, cameraPosition);
+            setCameraUniformsToShader_(depthShader_, cameraView, cameraProjection, cameraPosition);
+            setCameraUniformsToShader_(sandShader_, cameraView, cameraProjection, cameraPosition);
+            setCameraUniformsToShader_(skyboxShader_, glm::mat4(glm::mat3(cameraView)), cameraProjection, cameraPosition);
+            
+            terrainShader_->use();
+            terrainShader_->setVec3("sunPosition", sunPosition);
+            terrainShader_->setVec3("sunColor", sunColor);
+            terrainShader_->setFloat("farPlane", shadowFarPlane);
+
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemapTextureID_);
+
+            oceanShader_->use();
+            oceanShader_->setVec3("sunPosition", sunPosition);
+            oceanShader_->setVec3("sunColor", sunColor);
+            oceanShader_->setFloat("farPlane", shadowFarPlane);
+
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemapTextureID_);
 
             sandShader_->use();
             sandShader_->setInt("time", clock_.getTime());
@@ -332,7 +354,7 @@ namespace scene
                 ImGui::End();
             }
 
-            render_(displayNormals_);
+            render_(displayNormals_, displayDepth_);
 
             ocean_->updateHeights(clock_.getTime());
             ocean_->updateNormals();
@@ -348,10 +370,18 @@ namespace scene
         glfwTerminate();
     }
 
-    void Scene::setCameraView_(shader::Shader* shader, glm::mat4 cameraView)
+    void Scene::setCameraUniformsToShader_(
+        shader::Shader* shader, 
+        glm::mat4 cameraView, 
+        glm::mat4 cameraProjection,
+        glm::vec3 cameraPosition
+    )
     {
         shader->use();
+        
         shader->setMat4("view", cameraView);
+        shader->setMat4("projection", cameraProjection);
+        shader->setVec3("cameraPosition", cameraPosition);
     }
 
     void Scene::renderObject_(shader::Shader* shader, object::Object* object, glm::mat4 model)
@@ -362,7 +392,7 @@ namespace scene
         object->render();
     }
 
-    void Scene::renderOcean_()
+    void Scene::renderOcean_(bool displayNormals, bool useDepthShader)
     {
         glm::mat4 model = glm::mat4(1.0f);
 
@@ -389,62 +419,62 @@ namespace scene
 
         const auto offset = utils::OCEAN_SCALE * utils::OCEAN_SIZE;
 
-        for (int x = -10; x <= 10; x += 2)
+        for (int x = -5; x <= 5; x += 2)
         {
-            for (int z = -10; z <= 10; z += 2)
+            for (int z = -5; z <= 5; z += 2)
             {
                 // center
                 model = glm::mat4(1.0f);
                 model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
 
-                if (displayDepth_)
+                if (useDepthShader)
                     renderObject_(depthShader_, ocean_, model);
                 else
                     renderObject_(oceanShader_, ocean_, model);
 
-                if (displayNormals_)
+                if (displayNormals)
                     renderObject_(normalShader_, ocean_, model);
 
                 // right
                 model = glm::make_mat4(symetryZ);
                 model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
 
-                if (displayDepth_)
+                if (useDepthShader)
                     renderObject_(depthShader_, ocean_, model);
                 else
                     renderObject_(oceanShader_, ocean_, model);
 
-                if (displayNormals_)
+                if (displayNormals)
                     renderObject_(normalShader_, ocean_, model);
 
                 // up
                 model = glm::make_mat4(symetryX);
                 model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
                 
-                if (displayDepth_)
+                if (useDepthShader)
                     renderObject_(depthShader_, ocean_, model);
                 else
                     renderObject_(oceanShader_, ocean_, model);
 
-                if (displayNormals_)
+                if (displayNormals)
                     renderObject_(normalShader_, ocean_, model);
 
                 // right and up
                 model = glm::make_mat4(symetryXZ);
                 model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
                 
-                if (displayDepth_)
+                if (useDepthShader)
                     renderObject_(depthShader_, ocean_, model);
                 else
                     renderObject_(oceanShader_, ocean_, model);
 
-                if (displayNormals_)
+                if (displayNormals)
                     renderObject_(normalShader_, ocean_, model);
             }
         }
     }
 
-    void Scene::render_(bool displayNormals)
+    void Scene::render_(bool displayNormals, bool useDepthShader)
     {
         glm::mat4 model = glm::mat4(1.0f);
 
@@ -452,7 +482,7 @@ namespace scene
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f));
 
-        if (displayDepth_)
+        if (useDepthShader)
             renderObject_(depthShader_, moon_, model);
         else
             renderObject_(textureShader_, moon_, model);
@@ -464,7 +494,7 @@ namespace scene
         model = glm::mat4(0.05f);
         model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
 
-        if (displayDepth_)
+        if (useDepthShader)
             renderObject_(depthShader_, cube_, model);
         else
             renderObject_(textureShader_, cube_, model);
@@ -475,7 +505,7 @@ namespace scene
         // Render Terrain
         model = glm::mat4(1.0f);
 
-        if (displayDepth_)
+        if (useDepthShader)
             renderObject_(depthShader_, terrain_, model);
         else
             renderObject_(terrainShader_, terrain_, model);
@@ -490,8 +520,8 @@ namespace scene
 
         // Render Sand
         model = glm::mat4(1.0f);
-
-        if (displayDepth_)
+        
+        if (useDepthShader)
             renderObject_(depthShader_, sand_, model);
         else
             renderObject_(sandShader_, sand_, model);
@@ -504,7 +534,7 @@ namespace scene
         model = glm::translate(model, glm::vec3(1.0f, 0.0f, 1.0f));
         model = glm::scale(model, glm::vec3(0.01f));
 
-        if (displayDepth_)
+        if (useDepthShader)
             renderObject_(depthShader_, titanic_, model);
         else
             renderObject_(materialShader_, titanic_, model);
@@ -517,7 +547,7 @@ namespace scene
         model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 1.0f));
         model = glm::scale(model, glm::vec3(0.01f));
 
-        if (displayDepth_)
+        if (useDepthShader)
             renderObject_(depthShader_, shark_, model);
         else
             renderObject_(materialShader_, shark_, model);
@@ -526,7 +556,7 @@ namespace scene
             renderObject_(normalShader_, shark_, model);
 
         // Render Ocean
-        renderOcean_();
+        renderOcean_(displayNormals, useDepthShader);
 
         // Render Skybox
         skyboxShader_->use();
@@ -538,12 +568,11 @@ namespace scene
         glGenFramebuffers(1, &depthMapFboID_);
 
         // Create depth cubemap texture
-        unsigned int depthCubemapTextureID;
-        glGenTextures(1, &depthCubemapTextureID);
-            glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemapTextureID);
+        glGenTextures(1, &depthCubemapTextureID_);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemapTextureID_);
 
             for (uint32 i = 0; i < 6; ++i)
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, 512, 512, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -553,7 +582,7 @@ namespace scene
 
             // Attach depth texture
             glBindFramebuffer(GL_FRAMEBUFFER, depthMapFboID_);
-            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemapTextureID, 0);
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemapTextureID_, 0);
 
             glDrawBuffer(GL_NONE);
             glReadBuffer(GL_NONE);

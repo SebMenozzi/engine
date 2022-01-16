@@ -78,6 +78,7 @@ namespace scene
         object::AssimpModel* shark_;
 
         GLuint depthMapFboID_;
+        GLuint depthCubemapTextureID_;
 
         bool isWireframe_;
         bool isFullscreen_;
@@ -85,19 +86,15 @@ namespace scene
         bool displayDepth_;
 
         bool init_();
-        void loadShaders_(
-            glm::mat4 projection,
-            glm::vec3 sunPosition,
-            glm::vec3 cameraPosition
-        );
+        void loadShaders_();
         void loadTextures_();
         void loadObjects_();
         void loop_();
-        void setCameraView_(shader::Shader* shader, glm::mat4 cameraView);
+        void setCameraUniformsToShader_(shader::Shader* shader, glm::mat4 cameraView, glm::mat4 cameraProjection, glm::vec3 cameraPosition);
         void renderObject_(shader::Shader* shader, object::Object* object, glm::mat4 model);
-        void renderOcean_();
+        void renderOcean_(bool displayNormals, bool useDepthShader);
         void renderFog_();
-        void render_(bool displayNormals);
+        void render_(bool displayNormals, bool useDepthShader);
         void createDepthMap_();
     };
 }
