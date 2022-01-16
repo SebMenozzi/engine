@@ -80,10 +80,10 @@ namespace object
         vertices_ = Buffer { reinterpret_cast<const uint8*>(vertices->data()), sizeof(glm::vec3), vertices->size() };
         normals_ = Buffer { reinterpret_cast<const uint8*>(normals->data()), sizeof(glm::vec3), normals->size() };
 
-        for (int x = 0; x < size_; ++x)
+        for (int x = 0; x < size_ + 1; ++x)
         {
             std::vector<std::array<float, perlinLoopFrameLength_>> col;
-            for (int z = 0; z < size_; ++z)
+            for (int z = 0; z < size_ + 1; ++z)
             {
                 std::array<float, perlinLoopFrameLength_> frameHeights;
                 for (int i = 0; i < perlinLoopFrameLength_; i++)
@@ -136,19 +136,13 @@ namespace object
 
         uint8* data = const_cast<uint8*>(vertices_.data_);
 
-        // FIXME We should determine those values instead of hardcoding them
-        float minFloatX = -1;
-        float minFloatZ = -1;
-        float maxFloatX = 3.2;
-        float maxFloatZ = 3.2;
-
         for (uint8* p = data; p != data + totalSize; p += vertices_.dataStride_)
         {
             glm::vec3* pVec3 = reinterpret_cast<glm::vec3*>(p);
             glm::vec3 e = *pVec3;
 
-            int x = utils::scale(e.x, minFloatX, maxFloatX, 0, size_ - 1);
-            int z = utils::scale(e.z, minFloatZ, maxFloatZ, 0, size_ - 1);
+            int x = e.x / scale_;
+            int z = e.z / scale_;
 
             float newHeight = interpolatePerlinHeight(x, z, time);
             *pVec3 = glm::vec3(e.x, newHeight, e.z);
