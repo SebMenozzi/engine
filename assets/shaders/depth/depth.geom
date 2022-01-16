@@ -1,22 +1,18 @@
-#version 330 core
-layout (triangles) in;
-layout (triangle_strip, max_vertices=18) out;
+#version 410 core
 
-uniform mat4 shadowMatrices[6];
+layout(triangles, invocations = 5) in;
+layout(triangle_strip, max_vertices = 3) out;
 
-out vec4 position;
+uniform mat4 lightSpaceMatrices[16];
 
 void main()
-{
-    for (int face = 0; face < 6; ++face)
-    {
-        gl_Layer = face;
-        for(int i = 0; i < 3; ++i)
-        {
-            position = gl_in[i].gl_Position;
-            gl_Position = shadowMatrices[face] * position;
-            EmitVertex();
-        }
-        EndPrimitive();
-    }
-}
+{          
+	for (int i = 0; i < 3; ++i)
+	{
+		gl_Position = lightSpaceMatrices[gl_InvocationID] * gl_in[i].gl_Position;
+		gl_Layer = gl_InvocationID;
+		EmitVertex();
+	}
+
+	EndPrimitive();
+}  

@@ -10,8 +10,7 @@ uniform mat4 model;
 out vec3 position;
 
 void main()
-{    
+{
     position = vec3(model * vec4(vertexPosition, 1.0));
-    
     gl_Position = vec4(position, 1.0);
 }

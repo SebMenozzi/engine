@@ -77,8 +77,9 @@ namespace scene
         object::AssimpModel* titanic_;
         object::AssimpModel* shark_;
 
-        GLuint depthMapFboID_;
-        GLuint depthCubemapTextureID_;
+        GLuint depthMapsFboID_;
+        GLuint depthMapsTextureID_;
+        std::vector<float> shadowCascadeLevels_;
 
         bool isWireframe_;
         bool isFullscreen_;
@@ -95,6 +96,9 @@ namespace scene
         void renderOcean_(bool displayNormals, bool useDepthShader);
         void renderFog_();
         void render_(bool displayNormals, bool useDepthShader);
-        void createDepthMap_();
+        void createDepthMapsTexture_();
+        std::vector<glm::vec4> getFrustumCornersWorldSpace_(const glm::mat4& projection, const glm::mat4& view);
+        glm::mat4 getLightSpaceMatrix_(float nearPlane, float farPlane, glm::mat4 cameraView);
+        std::vector<glm::mat4> getLightSpaceMatrices_(glm::mat4 cameraView);
     };
 }
