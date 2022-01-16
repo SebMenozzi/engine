@@ -101,33 +101,33 @@ namespace object
         // convert time in seconds
         float time = timeMs / 1000.f;
 
-        int frame_i1, frame_i2;
+        int frameI1, frameI2;
 
         if ((int) (time / (perlinLoopDuration_ - perlinLoopPeriod)) % 2 == 0)
         {
             // frontward play
             time = std::fmod(time, perlinLoopDuration_ - perlinLoopPeriod);
 
-            frame_i1 = time * perlinLoopFps_;
-            frame_i2 = frame_i1 + 1;
+            frameI1 = time * perlinLoopFps_;
+            frameI2 = frameI1 + 1;
         }
         else
         {
             // backward play
             time = perlinLoopDuration_ - perlinLoopPeriod - std::fmod(time, perlinLoopDuration_ - perlinLoopPeriod);
 
-            frame_i2 = std::ceil(time * perlinLoopFps_);
-            frame_i1 = frame_i2 - 1;
+            frameI2 = std::ceil(time * perlinLoopFps_);
+            frameI1 = frameI2 - 1;
         }
 
         auto frameHeights = perlinLoopFrames_[x][z];
 
-        float time1 = frame_i1 / (float) perlinLoopFps_;
-        float time2 = frame_i2 / (float) perlinLoopFps_;
+        float time1 = frameI1 / (float) perlinLoopFps_;
+        float time2 = frameI2 / (float) perlinLoopFps_;
 
         float t = (time2 - time) / (time2 - time1);
 
-        return t * frameHeights[frame_i1] + (1 - t) * frameHeights[frame_i2];
+        return t * frameHeights[frameI1] + (1 - t) * frameHeights[frameI2];
     }
 
     void Ocean::updateHeights(uint32 time)
