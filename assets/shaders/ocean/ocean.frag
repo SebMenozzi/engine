@@ -90,7 +90,7 @@ void main()
     vec3 oceanColor = mix(vec3(0.5725, 0.7137, 1.0) * 0.5, vec3(0.0549, 0.1255, 0.5255), fogValue);
     oceanColor = mix(oceanColor, heightDepthColor, 0.4);
 
-    float shadow = clamp(shadowCalculation(position), 0.0, 0.5);
+    float shadow = clamp(shadowCalculation(position), 0.0, 0.4);
 
     vec3 oceanColorWithShadow = (1.0 - shadow) * oceanColor;
 

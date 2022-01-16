@@ -212,10 +212,10 @@ namespace scene
         loadObjects_();
 
         shadowCascadeLevels_ = std::vector<float>{ 
-            utils::CAMERA_FAR_PLANE / 30.0f, 
-            utils::CAMERA_FAR_PLANE / 20.0f, 
-            utils::CAMERA_FAR_PLANE / 15.0f, 
-            utils::CAMERA_FAR_PLANE / 10.0f
+            utils::CAMERA_FAR_PLANE / 5.0f, 
+            utils::CAMERA_FAR_PLANE / 2.0f, 
+            utils::CAMERA_FAR_PLANE / 1.0f, 
+            utils::CAMERA_FAR_PLANE / 0.5f
         };
 
         createDepthMapsTexture_();
@@ -619,7 +619,7 @@ namespace scene
             cameraView
         );
 
-        glm::vec3 center = glm::vec3(0, 0, 0);
+        glm::vec3 center = glm::vec3(10.0, 10.0, 10.0);
         for (const auto& corner : corners)
             center += glm::vec3(corner);
         center /= corners.size();
@@ -649,7 +649,7 @@ namespace scene
         }
 
         // Tune this parameter according to the scene
-        constexpr float zMult = 10.0f;
+        constexpr float zMult = 1.0f;
         if (minZ < 0)
             minZ *= zMult;
         else

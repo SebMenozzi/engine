@@ -79,7 +79,7 @@ void main()
     vec3 heightColor = vec3(clamp(value, 0, 0.9));
     vec3 terrainColor = mix(vec3(0.0902, 0.2784, 0.0902), heightColor, 0.5);
     
-    float shadow = clamp(shadowCalculation(position), 0.0, 0.5);
+    float shadow = clamp(shadowCalculation(position), 0.0, 0.4);
 
     vec3 terrainColorWithShadow = (1.0 - shadow) * terrainColor;
 
