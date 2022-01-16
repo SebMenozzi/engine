@@ -157,9 +157,9 @@ namespace object
         glm::vec3* verticesVec3 = reinterpret_cast<glm::vec3*>(verticesData);
 
         // verticesVec3[(int) (x * size_ + z) * 6]; is the vertex at position (x, z)
-        const glm::vec3 pRight = verticesVec3[(int) ((x + (x != size_ - 1)) * size_ + z) * 6];
+        const glm::vec3 pRight = verticesVec3[(int) ((x + (x != size_)) * size_ + z) * 6];
         const glm::vec3 pLeft = verticesVec3[(int) ((x - (x != 0)) * size_ + z) * 6];
-        const glm::vec3 pUp = verticesVec3[(int) (x * size_ + (z + (z != size_ - 1))) * 6];
+        const glm::vec3 pUp = verticesVec3[(int) (x * size_ + (z + (z != size_))) * 6];
         const glm::vec3 pDown = verticesVec3[(int) (x * size_ + (z - (z != 0))) * 6];
 
         // central difference : f(x + 1) - f(x - 1) ?
