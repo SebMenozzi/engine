@@ -335,6 +335,7 @@ namespace scene
             render_(displayNormals_);
 
             ocean_->updateHeights(clock_.getTime());
+            ocean_->updateNormals();
             ocean_->load();
 
             ImGui::Render();

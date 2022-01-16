@@ -48,7 +48,7 @@ namespace object
     Ocean::Ocean(
         float size,
         float scale
-    ): 
+    ):
         Heightmap(size),
         scale_(scale)
     {
@@ -133,7 +133,7 @@ namespace object
     void Ocean::updateHeights(uint32 time)
     {
         const uint32 totalSize = vertices_.dataStride_ * vertices_.nbElements_;
-        
+
         uint8* data = const_cast<uint8*>(vertices_.data_);
 
         // FIXME We should determine those values instead of hardcoding them
@@ -152,6 +152,57 @@ namespace object
 
             float newHeight = interpolatePerlinHeight(x, z, time);
             *pVec3 = glm::vec3(e.x, newHeight, e.z);
+        }
+    }
+
+    glm::vec3 Ocean::computeNormal(int x, int z)
+    {
+        float strength = 64.f;  // NOTE I'm not sure how to figure out this constant
+
+        uint8* verticesData = const_cast<uint8*>(vertices_.data_);
+        glm::vec3* verticesVec3 = reinterpret_cast<glm::vec3*>(verticesData);
+
+        // verticesVec3[(int) (x * size_ + z) * 6]; is the vertex at position (x, z)
+        const glm::vec3 pRight = verticesVec3[(int) ((x + (x != size_ - 1)) * size_ + z) * 6];
+        const glm::vec3 pLeft = verticesVec3[(int) ((x - (x != 0)) * size_ + z) * 6];
+        const glm::vec3 pUp = verticesVec3[(int) (x * size_ + (z + (z != size_ - 1))) * 6];
+        const glm::vec3 pDown = verticesVec3[(int) (x * size_ + (z - (z != 0))) * 6];
+
+        // central difference : f(x + 1) - f(x - 1) ?
+        float nX = pRight.y - pLeft.y;
+        float nY = 1 / strength;
+        float nZ = pUp.y - pDown.y;
+
+        return glm::normalize(glm::vec3(nX, nY, nZ));
+    }
+
+    void Ocean::updateNormals()
+    {
+        const uint32 totalSize = normals_.dataStride_ * normals_.nbElements_;
+
+        uint8* normalsData = const_cast<uint8*>(normals_.data_);
+        uint8* verticesData = const_cast<uint8*>(vertices_.data_);
+
+        uint8* n = normalsData;
+        uint8* p = verticesData;
+
+        while (n != normalsData + totalSize)
+        {
+            glm::vec3* nVec3 = reinterpret_cast<glm::vec3*>(n);
+
+            // figure out current vertex coordinates
+            glm::vec3 e = *reinterpret_cast<glm::vec3*>(p);
+            int x = e.x / scale_, z = e.z / scale_;
+
+            nVec3[0] = computeNormal(x, z);
+            nVec3[1] = computeNormal(x + 1, z);
+            nVec3[2] = computeNormal(x, z + 1);
+            nVec3[3] = computeNormal(x, z + 1);
+            nVec3[4] = computeNormal(x + 1, z + 1);
+            nVec3[5] = computeNormal(x + 1, z);
+
+            n += normals_.dataStride_ * 6;
+            p += vertices_.dataStride_ * 6;
         }
     }
 }
