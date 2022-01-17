@@ -12,7 +12,6 @@ namespace object
         public:
             Terrain(const char* filepath, float scale, float minHeight, float maxHeight);
         private:
-            float scale_;
             float minHeight_;
             float maxHeight_;
             

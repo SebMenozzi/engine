@@ -12,8 +12,7 @@ namespace object
         float minHeight, 
         float maxHeight
     ): 
-        Heightmap(0),
-        scale_(scale),
+        Heightmap(0, scale),
         minHeight_(minHeight),
         maxHeight_(maxHeight)
     {
@@ -68,6 +67,8 @@ namespace object
 
         vertices_ = Buffer { reinterpret_cast<const uint8*>(vertices->data()), sizeof(glm::vec3), vertices->size() };
         normals_ = Buffer { reinterpret_cast<const uint8*>(normals->data()), sizeof(glm::vec3), normals->size() };
+
+        computeNormals_(64.0f);
     }
 
     void Terrain::addVertices_(std::vector<glm::vec3>* vertices, float x, float z)

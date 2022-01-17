@@ -4,13 +4,33 @@ namespace scene
 {
     // MARK: - Public
 
+    float symetryX[16] = {
+        -1, 0,  0,  0,
+        0, 1,  0,  0,
+        0, 0, 1,  0,
+        0, 0,  0,  1
+    };
+
+    float symetryZ[16] = {
+        1, 0,  0,  0,
+        0, 1,  0,  0,
+        0, 0, -1,  0,
+        0, 0,  0,  1
+    };
+
+    float symetryXZ[16] = {
+        -1, 0,  0,  0,
+        0,  1,  0,  0,
+        0,  0, -1,  0,
+        0,  0,  0,  1
+    };
+
     Scene::Scene():
         window_(1280, 720, "Engine"),
         clock_(),
         isWireframe_(false),
         isFullscreen_(false),
-        displayNormals_(false),
-        displayDepth_(false)
+        displayNormals_(false)
     {
         if (!init_())
             exit(EXIT_FAILURE);
@@ -19,64 +39,6 @@ namespace scene
     }
 
     // MARK: - Private
-
-    bool Scene::init_()
-    {
-        // Init glfw
-        if (!glfwInit())
-        {
-            std::cerr << "Error while initializing GLFW3" << std::endl;
-            return false;
-        } 
-
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-        // Setup window
-        window_.init();
-        window_.setInputMode(GLFW_LOCK_KEY_MODS, GLFW_TRUE);
-        window_.setInputMode(GLFW_STICKY_KEYS, GLFW_TRUE);
-        window_.setInputMode(GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-        // Turn on V-Sync
-		glfwSwapInterval(1);
-
-        #ifndef __APPLE__
-        // Init glew
-        if (glewInit() != GLEW_OK)
-        {
-            std::cerr << "Error while initializing glew" << std::endl;
-            return false;
-        }
-        #endif
-
-        // Check OpenGL properties
-        printf("OpenGL loaded\n");
-        printf("Vendor:   %s\n", glGetString(GL_VENDOR));
-        printf("Renderer: %s\n", glGetString(GL_RENDERER));
-        printf("Version:  %s\n", glGetString(GL_VERSION));
-
-        // Depth Buffer activation
-        glEnable(GL_DEPTH_TEST);
-
-        // Enable antialiasing
-        glEnable(GL_MULTISAMPLE);
-
-        // Enable face culling
-        glDisable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
-
-        // clock wise
-        glFrontFace(GL_CW);
-
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        return true;
-    }
 
     void Scene::loadShaders_()
     {
@@ -175,7 +137,7 @@ namespace scene
         terrain_->addTexture(grassTexture_);
         terrain_->load();
 
-        sand_ = new object::Plane(10);
+        sand_ = new object::Plane(50);
         sand_->addTexture(sandTexture_);
         sand_->load();
 
@@ -187,6 +149,68 @@ namespace scene
 
         shark_ = new object::AssimpModel("assets/models/shark.obj");
         shark_->load();
+    }
+
+    bool Scene::init_()
+    {
+        // Init glfw
+        if (!glfwInit())
+        {
+            std::cerr << "Error while initializing GLFW3" << std::endl;
+            return false;
+        } 
+
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+        // Setup window
+        window_.init();
+        window_.setInputMode(GLFW_LOCK_KEY_MODS, GLFW_TRUE);
+        window_.setInputMode(GLFW_STICKY_KEYS, GLFW_TRUE);
+        window_.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        // Turn on V-Sync
+		glfwSwapInterval(1);
+
+        #ifndef __APPLE__
+        // Init glew
+        if (glewInit() != GLEW_OK)
+        {
+            std::cerr << "Error while initializing glew" << std::endl;
+            return false;
+        }
+        #endif
+
+        // Check OpenGL properties
+        printf("OpenGL loaded\n");
+        printf("Vendor:   %s\n", glGetString(GL_VENDOR));
+        printf("Renderer: %s\n", glGetString(GL_RENDERER));
+        printf("Version:  %s\n", glGetString(GL_VERSION));
+
+        // Depth Buffer activation
+        glEnable(GL_DEPTH_TEST);
+
+        // Enable antialiasing
+        glEnable(GL_MULTISAMPLE);
+
+        // Enable face culling
+        glDisable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+
+        // clock wise
+        glFrontFace(GL_CW);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        loadShaders_();
+        loadTextures_();
+        loadObjects_();
+
+        return true;
     }
 
     void Scene::loop_()
@@ -207,15 +231,10 @@ namespace scene
             0.05
         );
 
-        loadShaders_();
-        loadTextures_();
-        loadObjects_();
-
-        shadowCascadeLevels_ = std::vector<float>{ 
-            utils::CAMERA_FAR_PLANE / 5.0f, 
-            utils::CAMERA_FAR_PLANE / 2.0f, 
-            utils::CAMERA_FAR_PLANE / 1.0f, 
-            utils::CAMERA_FAR_PLANE / 0.5f
+        shadowCascadeLevels_ = std::vector<float>{
+            utils::CAMERA_FAR_PLANE / 20.0f, 
+            utils::CAMERA_FAR_PLANE / 10.0f,
+            utils::CAMERA_FAR_PLANE / 5.0f,
         };
 
         createDepthMapsTexture_();
@@ -223,21 +242,31 @@ namespace scene
         bool lastXKeyState = false;
         bool lastFKeyState = false;
         bool lastNKeyState = false;
-        bool lastCKeyState = false;
 
         ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+        oceanShader_->use();
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, depthMapsTextureID_);
+
+        terrainShader_->use();
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, depthMapsTextureID_);
+
         while (!window_.getShouldClose())
         {
+            camera.move(window_);
+            camera.lookAt(cameraView);
+
             const auto lightSpaceMatrices = getLightSpaceMatrices_(cameraView);
+
+            depthShader_->use();
+            for (uint32 i = 0; i < lightSpaceMatrices.size(); ++i)
+                depthShader_->setMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
 
             glViewport(0, 0, utils::DEPTH_MAP_RESOLUTION, utils::DEPTH_MAP_RESOLUTION);
             glBindFramebuffer(GL_FRAMEBUFFER, depthMapsFboID_);
                 glClear(GL_DEPTH_BUFFER_BIT);
-
-                depthShader_->use();
-                for (uint32 i = 0; i < lightSpaceMatrices.size(); ++i)
-                    depthShader_->setMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
                 
                 glCullFace(GL_FRONT);
                 render_(false, true);
@@ -287,14 +316,6 @@ namespace scene
                 displayNormals_ = !displayNormals_;
             lastNKeyState = window_.isKeyPressed(GLFW_KEY_N);
 
-            // Toggle Display Depth
-            if (!lastCKeyState && window_.isKeyPressed(GLFW_KEY_C))
-                displayDepth_ = !displayDepth_;
-            lastCKeyState = window_.isKeyPressed(GLFW_KEY_C);
-
-            camera.move(window_);
-            camera.lookAt(cameraView);
-
             setCameraUniformsToShader_(textureShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(terrainShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(grassShader_, cameraView, cameraProjection, cameraPosition);
@@ -314,9 +335,6 @@ namespace scene
             for (uint32 i = 0; i < shadowCascadeLevels_.size(); ++i)
                 terrainShader_->setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", shadowCascadeLevels_[i]);
 
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D_ARRAY, depthMapsTextureID_);
-
             oceanShader_->use();
             oceanShader_->setVec3("sunDirection", utils::SUN_DIRECTION);
             oceanShader_->setFloat("farPlane", utils::CAMERA_FAR_PLANE);
@@ -325,9 +343,6 @@ namespace scene
             oceanShader_->setInt("cascadeCount", shadowCascadeLevels_.size());
             for (size_t i = 0; i < shadowCascadeLevels_.size(); ++i)
                 oceanShader_->setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", shadowCascadeLevels_[i]);
-
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D_ARRAY, depthMapsTextureID_);
 
             sandShader_->use();
             sandShader_->setInt("time", clock_.getTime());
@@ -346,10 +361,9 @@ namespace scene
                 ImGui::End();
             }
 
-            render_(displayNormals_, displayDepth_);
+            render_(displayNormals_, false);
 
             ocean_->updateHeights(clock_.getTime());
-            ocean_->updateNormals();
             ocean_->load();
 
             ImGui::Render();
@@ -388,32 +402,11 @@ namespace scene
     {
         glm::mat4 model = glm::mat4(1.0f);
 
-        float symetryX[16] = {
-            -1, 0,  0,  0,
-            0, 1,  0,  0,
-            0, 0, 1,  0,
-            0, 0,  0,  1
-        };
-
-        float symetryZ[16] = {
-            1, 0,  0,  0,
-            0, 1,  0,  0,
-            0, 0, -1,  0,
-            0, 0,  0,  1
-        };
-
-        float symetryXZ[16] = {
-            -1, 0,  0,  0,
-            0,  1,  0,  0,
-            0,  0, -1,  0,
-            0,  0,  0,  1
-        };
-
         const auto offset = utils::OCEAN_SCALE * utils::OCEAN_SIZE;
 
-        for (int x = -2; x <= 2; x += 2)
+        for (int x = -2; x <= 2; x += 1)
         {
-            for (int z = -2; z <= 2; z += 2)
+            for (int z = -2; z <= 2; z += 1)
             {
                 // center
                 model = glm::mat4(1.0f);
@@ -483,7 +476,7 @@ namespace scene
             renderObject_(normalShader_, moon_, model);
 
         // Render Cube
-        model = glm::mat4(0.05f);
+        model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
 
         if (useDepthShader)
@@ -512,6 +505,7 @@ namespace scene
 
         // Render Sand
         model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.06f, 0.0f));
         
         if (useDepthShader)
             renderObject_(depthShader_, sand_, model);
@@ -520,10 +514,10 @@ namespace scene
 
         if (displayNormals)
             renderObject_(normalShader_, sand_, model);
-
+        
         // Render Titanic
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(1.0f, 0.0f, 1.0f));
+        model = glm::translate(model, glm::vec3(5.0f, 0.0f, 1.0f));
         model = glm::scale(model, glm::vec3(0.01f));
 
         if (useDepthShader)

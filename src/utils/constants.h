@@ -25,5 +25,5 @@ namespace utils
     // Ocean
     const float OCEAN_SIZE = 64.0;
     const float OCEAN_HEIGHT = 0.05;
-    const float OCEAN_SCALE = 0.05;
+    const float OCEAN_SCALE = 0.1;
 }
