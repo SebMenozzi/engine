@@ -619,14 +619,14 @@ namespace scene
             cameraView
         );
 
-        glm::vec3 center = glm::vec3(10.0, 10.0, 10.0);
+        glm::vec3 center = glm::vec3(0.0, 0.0, 0.0);
         for (const auto& corner : corners)
             center += glm::vec3(corner);
         center /= corners.size();
 
         const auto lightView = glm::lookAt(
             center + utils::SUN_DIRECTION, 
-            center, 
+            center,
             glm::vec3(0.0f, 1.0f, 0.0f)
         );
 
@@ -648,8 +648,7 @@ namespace scene
             maxZ = std::max(maxZ, trf.z);
         }
 
-        // Tune this parameter according to the scene
-        constexpr float zMult = 1.0f;
+        constexpr float zMult = 2.0f;
         if (minZ < 0)
             minZ *= zMult;
         else
