@@ -151,8 +151,10 @@ namespace object
 
     glm::vec3 Ocean::computeNormal(int x, int z)
     {
-        if (x >= size_ || z >= size_)
-            return glm::vec3(0, 1, 0);
+        if (x >= size_)
+            return computeNormal(x - 1, z);
+        if (z >= size_)
+            return computeNormal(x, z - 1);
 
         float strength = 64.f;  // NOTE I'm not sure how to figure out this constant
 
