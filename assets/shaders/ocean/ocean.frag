@@ -58,12 +58,12 @@ float shadowCalculation(vec3 position)
     float shadow = 0.0;
     vec2 texelSize = 1.0 / vec2(textureSize(depthMapsTexture, 0));
 
-    for (int x = -5; x <= 5; ++x)
+    for (int x = -4; x <= 4; ++x)
     {
-        for (int y = -5; y <= 5; ++y)
+        for (int y = -4; y <= 4; ++y)
         {
             float closestDepth = texture(depthMapsTexture, vec3(coords.xy + vec2(x, y) * texelSize, layer)).r;
-            shadow += (coords.z - bias) > closestDepth ? 0.005 : 0.0; 
+            shadow += (coords.z - bias) > closestDepth ? 0.01 : 0.0; 
         }
     }
         
@@ -73,13 +73,13 @@ float shadowCalculation(vec3 position)
 void main()
 {
 
-    float heightDepthValue = position.y / 1.0;
-    vec3 heightDepthColor = vec3(clamp(heightDepthValue, 0, 0.9));
+    float heightDepthValue = position.y / 0.5;
+    vec3 heightDepthColor = vec3(heightDepthValue);
 
     float fogValue = 1.0 - 2.0 * linear(gl_FragCoord.z * 2.0 - 1.0, near, far) / far;
 
     vec3 oceanColor = mix(vec3(0.5725, 0.7137, 1.0) * 0.5, vec3(0.0549, 0.1255, 0.5255), fogValue);
-    oceanColor = mix(oceanColor, heightDepthColor, 0.4);
+    oceanColor = mix(heightDepthColor, oceanColor, 0.5);
 
     float shadow = clamp(shadowCalculation(position), 0.0, 0.4);
 

@@ -65,12 +65,12 @@ namespace object
             glm::vec3 e = *reinterpret_cast<glm::vec3*>(p);
             int x = e.x / scale_, z = e.z / scale_;
 
-            nVec3[0] = computeNormal_(x, z, strength);
-            nVec3[1] = computeNormal_(x + 1, z, strength);
-            nVec3[2] = computeNormal_(x, z + 1, strength);
-            nVec3[3] = computeNormal_(x, z + 1, strength);
-            nVec3[4] = computeNormal_(x + 1, z + 1, strength);
-            nVec3[5] = computeNormal_(x + 1, z, strength);
+            nVec3[0] = computeNormal_(x, z + 1, strength);
+            nVec3[1] = computeNormal_(x + 1, z + 1, strength);
+            nVec3[2] = computeNormal_(x + 1, z, strength);
+            nVec3[3] = computeNormal_(x + 1, z, strength);
+            nVec3[4] = computeNormal_(x, z, strength);
+            nVec3[5] = computeNormal_(x, z + 1, strength);
 
             n += normals_.dataStride_ * 6;
             p += vertices_.dataStride_ * 6;

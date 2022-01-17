@@ -11,7 +11,7 @@ in vec3 position[];
 
 out vec2 uv;
 
-const float grassMinSize = 0.5;
+const float grassMinSize = 1.0;
 float grassSize;
 
 float random(vec2 st)

@@ -61,6 +61,7 @@ namespace scene
         shader::Shader* sandShader_;
 
         // Textures
+        texture::Texture* terrainTexture_;
         texture::Texture* grassTexture_;
         texture::Texture* woodTexture_;
         texture::Texture* moonTexture_;
@@ -84,6 +85,7 @@ namespace scene
         bool isWireframe_;
         bool isFullscreen_;
         bool displayNormals_;
+        bool shadowRendered_;
 
         bool init_();
         void loadShaders_();

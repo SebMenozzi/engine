@@ -30,7 +30,8 @@ namespace scene
         clock_(),
         isWireframe_(false),
         isFullscreen_(false),
-        displayNormals_(false)
+        displayNormals_(false),
+        shadowRendered_(false)
     {
         if (!init_())
             exit(EXIT_FAILURE);
@@ -57,13 +58,20 @@ namespace scene
         terrainShader_ = new shader::Shader("assets/shaders/terrain/terrain.vert", "assets/shaders/terrain/terrain.frag");
         terrainShader_->load();
         terrainShader_->use();
-        terrainShader_->setFloat("maxHeight", utils::TERRAIN_MAX_HEIGHT);
-        terrainShader_->setInt("depthMapTexture", 1);
+        terrainShader_->setFloat("size", utils::TERRAIN_SIZE);
+        terrainShader_->setFloat("scale", utils::TERRAIN_SCALE);
+        terrainShader_->setFloat("displacementScale", utils::TERRAIN_DISPLACEMENT_SCALE);
+        terrainShader_->setInt("terrainTexture", 1);
+        terrainShader_->setInt("depthMapsTexture", 2);
 
         grassShader_ = new shader::Shader("assets/shaders/grass/grass.vert", "assets/shaders/grass/grass.frag", "assets/shaders/grass/grass.geom");
         grassShader_->load();
         grassShader_->use();
+        grassShader_->setFloat("size", utils::TERRAIN_SIZE);
+        grassShader_->setFloat("scale", utils::TERRAIN_SCALE);
+        terrainShader_->setFloat("displacementScale", utils::TERRAIN_DISPLACEMENT_SCALE);
         grassShader_->setInt("grassTexture", 0);
+        grassShader_->setInt("terrainTexture", 1);
         grassShader_->setFloat("grassMinHeight", utils::TERRAIN_GRASS_MIN_HEIGHT);
 
         oceanShader_ = new shader::Shader("assets/shaders/ocean/ocean.vert", "assets/shaders/ocean/ocean.frag");
@@ -93,6 +101,9 @@ namespace scene
     {
         grassTexture_ = new texture::Texture("assets/textures/grass/grass1.png", "grassTexture");
         grassTexture_->load();
+
+        terrainTexture_ = new texture::Texture("assets/textures/terrain.png", "terrainTexture");
+        terrainTexture_->load();
 
         woodTexture_ = new texture::Texture("assets/textures/wood.png", "woodTexture");
         woodTexture_->load();
@@ -129,15 +140,14 @@ namespace scene
         cube_->load();
 
         terrain_ = new object::Terrain(
-            "assets/textures/terrain.png", 
-            utils::TERRAIN_SCALE,
-            utils::TERRAIN_MIN_HEIGHT,
-            utils::TERRAIN_MAX_HEIGHT
+            utils::TERRAIN_SIZE, 
+            utils::TERRAIN_SCALE
         );
         terrain_->addTexture(grassTexture_);
+        terrain_->addTexture(terrainTexture_);
         terrain_->load();
 
-        sand_ = new object::Plane(50);
+        sand_ = new object::Plane(20);
         sand_->addTexture(sandTexture_);
         sand_->load();
 
@@ -197,8 +207,8 @@ namespace scene
         glEnable(GL_MULTISAMPLE);
 
         // Enable face culling
-        glDisable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
 
         // clock wise
         glFrontFace(GL_CW);
@@ -242,6 +252,7 @@ namespace scene
         bool lastXKeyState = false;
         bool lastFKeyState = false;
         bool lastNKeyState = false;
+        bool lastCKeyState = false;
 
         ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -250,7 +261,7 @@ namespace scene
         glBindTexture(GL_TEXTURE_2D_ARRAY, depthMapsTextureID_);
 
         terrainShader_->use();
-        glActiveTexture(GL_TEXTURE1);
+        glActiveTexture(GL_TEXTURE0 + 2);
         glBindTexture(GL_TEXTURE_2D_ARRAY, depthMapsTextureID_);
 
         while (!window_.getShouldClose())
@@ -258,20 +269,43 @@ namespace scene
             camera.move(window_);
             camera.lookAt(cameraView);
 
-            const auto lightSpaceMatrices = getLightSpaceMatrices_(cameraView);
+            if (!shadowRendered_)
+            {
+                const auto lightSpaceMatrices = getLightSpaceMatrices_(cameraView);
 
-            depthShader_->use();
-            for (uint32 i = 0; i < lightSpaceMatrices.size(); ++i)
-                depthShader_->setMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
+                depthShader_->use();
+                for (uint32 i = 0; i < lightSpaceMatrices.size(); ++i)
+                    depthShader_->setMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
 
-            glViewport(0, 0, utils::DEPTH_MAP_RESOLUTION, utils::DEPTH_MAP_RESOLUTION);
-            glBindFramebuffer(GL_FRAMEBUFFER, depthMapsFboID_);
-                glClear(GL_DEPTH_BUFFER_BIT);
-                
-                glCullFace(GL_FRONT);
-                render_(false, true);
-                glCullFace(GL_BACK);
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                terrainShader_->use();
+                terrainShader_->setVec3("sunDirection", utils::SUN_DIRECTION);
+                terrainShader_->setFloat("farPlane", utils::CAMERA_FAR_PLANE);
+                for (uint32 i = 0; i < lightSpaceMatrices.size(); ++i)
+                    terrainShader_->setMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
+                terrainShader_->setInt("cascadeCount", shadowCascadeLevels_.size());
+                for (uint32 i = 0; i < shadowCascadeLevels_.size(); ++i)
+                    terrainShader_->setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", shadowCascadeLevels_[i]);
+
+                oceanShader_->use();
+                oceanShader_->setVec3("sunDirection", utils::SUN_DIRECTION);
+                oceanShader_->setFloat("farPlane", utils::CAMERA_FAR_PLANE);
+                for (uint32 i = 0; i < lightSpaceMatrices.size(); ++i)
+                    oceanShader_->setMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
+                oceanShader_->setInt("cascadeCount", shadowCascadeLevels_.size());
+                for (size_t i = 0; i < shadowCascadeLevels_.size(); ++i)
+                    oceanShader_->setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", shadowCascadeLevels_[i]);
+
+                glViewport(0, 0, utils::DEPTH_MAP_RESOLUTION, utils::DEPTH_MAP_RESOLUTION);
+                glBindFramebuffer(GL_FRAMEBUFFER, depthMapsFboID_);
+                    glClear(GL_DEPTH_BUFFER_BIT);
+                    
+                    glCullFace(GL_FRONT);
+                    render_(false, true);
+                    glCullFace(GL_BACK);
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+                shadowRendered_ = true;
+            }
 
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -316,6 +350,11 @@ namespace scene
                 displayNormals_ = !displayNormals_;
             lastNKeyState = window_.isKeyPressed(GLFW_KEY_N);
 
+            // Toggle Shadows
+            if (!lastCKeyState && window_.isKeyPressed(GLFW_KEY_C))
+                shadowRendered_ = false;
+            lastCKeyState = window_.isKeyPressed(GLFW_KEY_C);
+
             setCameraUniformsToShader_(textureShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(terrainShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(grassShader_, cameraView, cameraProjection, cameraPosition);
@@ -325,24 +364,6 @@ namespace scene
             setCameraUniformsToShader_(depthShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(sandShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(skyboxShader_, glm::mat4(glm::mat3(cameraView)), cameraProjection, cameraPosition);
-            
-            terrainShader_->use();
-            terrainShader_->setVec3("sunDirection", utils::SUN_DIRECTION);
-            terrainShader_->setFloat("farPlane", utils::CAMERA_FAR_PLANE);
-            for (uint32 i = 0; i < lightSpaceMatrices.size(); ++i)
-                terrainShader_->setMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
-            terrainShader_->setInt("cascadeCount", shadowCascadeLevels_.size());
-            for (uint32 i = 0; i < shadowCascadeLevels_.size(); ++i)
-                terrainShader_->setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", shadowCascadeLevels_[i]);
-
-            oceanShader_->use();
-            oceanShader_->setVec3("sunDirection", utils::SUN_DIRECTION);
-            oceanShader_->setFloat("farPlane", utils::CAMERA_FAR_PLANE);
-            for (uint32 i = 0; i < lightSpaceMatrices.size(); ++i)
-                oceanShader_->setMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
-            oceanShader_->setInt("cascadeCount", shadowCascadeLevels_.size());
-            for (size_t i = 0; i < shadowCascadeLevels_.size(); ++i)
-                oceanShader_->setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", shadowCascadeLevels_[i]);
 
             sandShader_->use();
             sandShader_->setInt("time", clock_.getTime());
@@ -400,13 +421,15 @@ namespace scene
 
     void Scene::renderOcean_(bool displayNormals, bool useDepthShader)
     {
+        glDisable(GL_CULL_FACE);
+        
         glm::mat4 model = glm::mat4(1.0f);
 
         const auto offset = utils::OCEAN_SCALE * utils::OCEAN_SIZE;
 
-        for (int x = -2; x <= 2; x += 1)
+        for (int x = -1; x <= 1; x += 2)
         {
-            for (int z = -2; z <= 2; z += 1)
+            for (int z = -1; z <= 1; z += 2)
             {
                 // center
                 model = glm::mat4(1.0f);
@@ -457,6 +480,8 @@ namespace scene
                     renderObject_(normalShader_, ocean_, model);
             }
         }
+
+        glEnable(GL_CULL_FACE);
     }
 
     void Scene::render_(bool displayNormals, bool useDepthShader)
