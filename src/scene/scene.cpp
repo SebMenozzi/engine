@@ -30,8 +30,7 @@ namespace scene
         clock_(),
         isWireframe_(false),
         isFullscreen_(false),
-        displayNormals_(false),
-        shadowRendered_(false)
+        displayNormals_(false)
     {
         if (!init_())
             exit(EXIT_FAILURE);
@@ -62,14 +61,13 @@ namespace scene
         terrainShader_->setFloat("scale", utils::TERRAIN_SCALE);
         terrainShader_->setFloat("displacementScale", utils::TERRAIN_DISPLACEMENT_SCALE);
         terrainShader_->setInt("terrainTexture", 1);
-        terrainShader_->setInt("depthMapsTexture", 2);
 
         grassShader_ = new shader::Shader("assets/shaders/grass/grass.vert", "assets/shaders/grass/grass.frag", "assets/shaders/grass/grass.geom");
         grassShader_->load();
         grassShader_->use();
         grassShader_->setFloat("size", utils::TERRAIN_SIZE);
         grassShader_->setFloat("scale", utils::TERRAIN_SCALE);
-        terrainShader_->setFloat("displacementScale", utils::TERRAIN_DISPLACEMENT_SCALE);
+        grassShader_->setFloat("displacementScale", utils::TERRAIN_DISPLACEMENT_SCALE);
         grassShader_->setInt("grassTexture", 0);
         grassShader_->setInt("terrainTexture", 1);
         grassShader_->setFloat("grassMinHeight", utils::TERRAIN_GRASS_MIN_HEIGHT);
@@ -77,7 +75,10 @@ namespace scene
         oceanShader_ = new shader::Shader("assets/shaders/ocean/ocean.vert", "assets/shaders/ocean/ocean.frag");
         oceanShader_->load();
         oceanShader_->use();
-        oceanShader_->setInt("depthMapTexture", 1);
+        oceanShader_->setFloat("size", utils::OCEAN_SIZE);
+        oceanShader_->setFloat("scale", utils::OCEAN_SCALE);
+        oceanShader_->setFloat("displacementScale", 0.5);
+        oceanShader_->setInt("noiseTexture", 0);
 
         normalShader_ = new shader::Shader("assets/shaders/normal/normal.vert", "assets/shaders/normal/normal.frag", "assets/shaders/normal/normal.geom");
         normalShader_->load();
@@ -86,10 +87,6 @@ namespace scene
         materialShader_ = new shader::Shader("assets/shaders/material/material.vert", "assets/shaders/material/material.frag");
         materialShader_->load();
         materialShader_->use();
-
-        depthShader_ = new shader::Shader("assets/shaders/depth/depth.vert", "assets/shaders/depth/depth.frag", "assets/shaders/depth/depth.geom");
-        depthShader_->load();
-        depthShader_->use();
 
         sandShader_ = new shader::Shader("assets/shaders/sand/sand.vert", "assets/shaders/sand/sand.frag");
         sandShader_->load();
@@ -135,27 +132,17 @@ namespace scene
         moon_->addTexture(moonTexture_);
         moon_->load();
 
-        cube_ = new object::Cube(1);
-        cube_->addTexture(woodTexture_);
-        cube_->load();
-
-        terrain_ = new object::Terrain(
-            utils::TERRAIN_SIZE, 
-            utils::TERRAIN_SCALE
-        );
+        terrain_ = new object::Heightmap(utils::TERRAIN_SIZE);
         terrain_->addTexture(grassTexture_);
         terrain_->addTexture(terrainTexture_);
         terrain_->load();
 
-        sand_ = new object::Plane(20);
+        sand_ = new object::Plane(30);
         sand_->addTexture(sandTexture_);
         sand_->load();
 
-        ocean_ = new object::Ocean(utils::OCEAN_SIZE, utils::OCEAN_SCALE);
+        ocean_ = new object::Heightmap(utils::OCEAN_SIZE);
         ocean_->load();
-
-        titanic_ = new object::AssimpModel("assets/models/titanic/titanic.obj");
-        titanic_->load();
 
         shark_ = new object::AssimpModel("assets/models/shark.obj");
         shark_->load();
@@ -200,7 +187,7 @@ namespace scene
         printf("Renderer: %s\n", glGetString(GL_RENDERER));
         printf("Version:  %s\n", glGetString(GL_VERSION));
 
-        // Depth Buffer activation
+        // Depth Buffer
         glEnable(GL_DEPTH_TEST);
 
         // Enable antialiasing
@@ -241,71 +228,22 @@ namespace scene
             0.05
         );
 
-        shadowCascadeLevels_ = std::vector<float>{
-            utils::CAMERA_FAR_PLANE / 20.0f, 
-            utils::CAMERA_FAR_PLANE / 10.0f,
-            utils::CAMERA_FAR_PLANE / 5.0f,
-        };
-
-        createDepthMapsTexture_();
-
         bool lastXKeyState = false;
         bool lastFKeyState = false;
         bool lastNKeyState = false;
-        bool lastCKeyState = false;
 
         ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-        oceanShader_->use();
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, depthMapsTextureID_);
-
         terrainShader_->use();
-        glActiveTexture(GL_TEXTURE0 + 2);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, depthMapsTextureID_);
+        terrainShader_->setVec3("sunDirection", utils::SUN_DIRECTION);
+
+        oceanShader_->use();
+        oceanShader_->setVec3("sunDirection", utils::SUN_DIRECTION);
 
         while (!window_.getShouldClose())
         {
             camera.move(window_);
             camera.lookAt(cameraView);
-
-            if (!shadowRendered_)
-            {
-                const auto lightSpaceMatrices = getLightSpaceMatrices_(cameraView);
-
-                depthShader_->use();
-                for (uint32 i = 0; i < lightSpaceMatrices.size(); ++i)
-                    depthShader_->setMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
-
-                terrainShader_->use();
-                terrainShader_->setVec3("sunDirection", utils::SUN_DIRECTION);
-                terrainShader_->setFloat("farPlane", utils::CAMERA_FAR_PLANE);
-                for (uint32 i = 0; i < lightSpaceMatrices.size(); ++i)
-                    terrainShader_->setMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
-                terrainShader_->setInt("cascadeCount", shadowCascadeLevels_.size());
-                for (uint32 i = 0; i < shadowCascadeLevels_.size(); ++i)
-                    terrainShader_->setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", shadowCascadeLevels_[i]);
-
-                oceanShader_->use();
-                oceanShader_->setVec3("sunDirection", utils::SUN_DIRECTION);
-                oceanShader_->setFloat("farPlane", utils::CAMERA_FAR_PLANE);
-                for (uint32 i = 0; i < lightSpaceMatrices.size(); ++i)
-                    oceanShader_->setMat4("lightSpaceMatrices[" + std::to_string(i) + "]", lightSpaceMatrices[i]);
-                oceanShader_->setInt("cascadeCount", shadowCascadeLevels_.size());
-                for (size_t i = 0; i < shadowCascadeLevels_.size(); ++i)
-                    oceanShader_->setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", shadowCascadeLevels_[i]);
-
-                glViewport(0, 0, utils::DEPTH_MAP_RESOLUTION, utils::DEPTH_MAP_RESOLUTION);
-                glBindFramebuffer(GL_FRAMEBUFFER, depthMapsFboID_);
-                    glClear(GL_DEPTH_BUFFER_BIT);
-                    
-                    glCullFace(GL_FRONT);
-                    render_(false, true);
-                    glCullFace(GL_BACK);
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-                shadowRendered_ = true;
-            }
 
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -350,23 +288,20 @@ namespace scene
                 displayNormals_ = !displayNormals_;
             lastNKeyState = window_.isKeyPressed(GLFW_KEY_N);
 
-            // Toggle Shadows
-            if (!lastCKeyState && window_.isKeyPressed(GLFW_KEY_C))
-                shadowRendered_ = false;
-            lastCKeyState = window_.isKeyPressed(GLFW_KEY_C);
-
             setCameraUniformsToShader_(textureShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(terrainShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(grassShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(oceanShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(normalShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(materialShader_, cameraView, cameraProjection, cameraPosition);
-            setCameraUniformsToShader_(depthShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(sandShader_, cameraView, cameraProjection, cameraPosition);
             setCameraUniformsToShader_(skyboxShader_, glm::mat4(glm::mat3(cameraView)), cameraProjection, cameraPosition);
 
             sandShader_->use();
             sandShader_->setInt("time", clock_.getTime());
+
+            oceanShader_->use();
+            oceanShader_->setInt("time", clock_.getTime());
 
             {
                 static float f = 0.0f;
@@ -382,10 +317,7 @@ namespace scene
                 ImGui::End();
             }
 
-            render_(displayNormals_, false);
-
-            ocean_->updateHeights(clock_.getTime());
-            ocean_->load();
+            render_(displayNormals_);
 
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -419,7 +351,7 @@ namespace scene
         object->render();
     }
 
-    void Scene::renderOcean_(bool displayNormals, bool useDepthShader)
+    void Scene::renderOcean_(bool displayNormals)
     {
         glDisable(GL_CULL_FACE);
         
@@ -435,10 +367,7 @@ namespace scene
                 model = glm::mat4(1.0f);
                 model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
 
-                if (useDepthShader)
-                    renderObject_(depthShader_, ocean_, model);
-                else
-                    renderObject_(oceanShader_, ocean_, model);
+                renderObject_(oceanShader_, ocean_, model);
 
                 if (displayNormals)
                     renderObject_(normalShader_, ocean_, model);
@@ -447,10 +376,7 @@ namespace scene
                 model = glm::make_mat4(symetryZ);
                 model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
 
-                if (useDepthShader)
-                    renderObject_(depthShader_, ocean_, model);
-                else
-                    renderObject_(oceanShader_, ocean_, model);
+                renderObject_(oceanShader_, ocean_, model);
 
                 if (displayNormals)
                     renderObject_(normalShader_, ocean_, model);
@@ -459,10 +385,7 @@ namespace scene
                 model = glm::make_mat4(symetryX);
                 model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
                 
-                if (useDepthShader)
-                    renderObject_(depthShader_, ocean_, model);
-                else
-                    renderObject_(oceanShader_, ocean_, model);
+                renderObject_(oceanShader_, ocean_, model);
 
                 if (displayNormals)
                     renderObject_(normalShader_, ocean_, model);
@@ -471,10 +394,7 @@ namespace scene
                 model = glm::make_mat4(symetryXZ);
                 model = glm::translate(model, glm::vec3(x * offset, utils::OCEAN_HEIGHT, z * offset));
                 
-                if (useDepthShader)
-                    renderObject_(depthShader_, ocean_, model);
-                else
-                    renderObject_(oceanShader_, ocean_, model);
+                renderObject_(oceanShader_, ocean_, model);
 
                 if (displayNormals)
                     renderObject_(normalShader_, ocean_, model);
@@ -484,7 +404,7 @@ namespace scene
         glEnable(GL_CULL_FACE);
     }
 
-    void Scene::render_(bool displayNormals, bool useDepthShader)
+    void Scene::render_(bool displayNormals)
     {
         glm::mat4 model = glm::mat4(1.0f);
 
@@ -492,33 +412,15 @@ namespace scene
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f));
 
-        if (useDepthShader)
-            renderObject_(depthShader_, moon_, model);
-        else
-            renderObject_(textureShader_, moon_, model);
+        renderObject_(textureShader_, moon_, model);
 
         if (displayNormals)
             renderObject_(normalShader_, moon_, model);
 
-        // Render Cube
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
-
-        if (useDepthShader)
-            renderObject_(depthShader_, cube_, model);
-        else
-            renderObject_(textureShader_, cube_, model);
-
-        if (displayNormals)
-            renderObject_(normalShader_, cube_, model);
-
         // Render Terrain
         model = glm::mat4(1.0f);
 
-        if (useDepthShader)
-            renderObject_(depthShader_, terrain_, model);
-        else
-            renderObject_(terrainShader_, terrain_, model);
+        renderObject_(terrainShader_, terrain_, model);
 
         if (displayNormals)
             renderObject_(normalShader_, terrain_, model);
@@ -530,172 +432,27 @@ namespace scene
 
         // Render Sand
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.06f, 0.0f));
         
-        if (useDepthShader)
-            renderObject_(depthShader_, sand_, model);
-        else
-            renderObject_(sandShader_, sand_, model);
+        renderObject_(sandShader_, sand_, model);
 
         if (displayNormals)
             renderObject_(normalShader_, sand_, model);
-        
-        // Render Titanic
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(5.0f, 0.0f, 1.0f));
-        model = glm::scale(model, glm::vec3(0.01f));
-
-        if (useDepthShader)
-            renderObject_(depthShader_, titanic_, model);
-        else
-            renderObject_(materialShader_, titanic_, model);
-
-        if (displayNormals)
-            renderObject_(normalShader_, titanic_, model);
 
         // Render Shark
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 1.0f));
         model = glm::scale(model, glm::vec3(0.01f));
 
-        if (useDepthShader)
-            renderObject_(depthShader_, shark_, model);
-        else
-            renderObject_(materialShader_, shark_, model);
+        renderObject_(materialShader_, shark_, model);
 
         if (displayNormals)
             renderObject_(normalShader_, shark_, model);
 
         // Render Ocean
-        renderOcean_(displayNormals, useDepthShader);
+        renderOcean_(displayNormals);
 
         // Render Skybox
         skyboxShader_->use();
         skybox_->render();
-    }
-
-    void Scene::createDepthMapsTexture_()
-    {
-        glGenFramebuffers(1, &depthMapsFboID_);
-
-        glGenTextures(1, &depthMapsTextureID_);
-            glBindTexture(GL_TEXTURE_2D_ARRAY, depthMapsTextureID_);
-
-            glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, utils::DEPTH_MAP_RESOLUTION, utils::DEPTH_MAP_RESOLUTION, int(shadowCascadeLevels_.size()) + 1, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-
-            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-            constexpr float bordercolor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-            glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, bordercolor);
-
-            // Attach depth texture
-            glBindFramebuffer(GL_FRAMEBUFFER, depthMapsFboID_);
-            glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthMapsTextureID_, 0);
-            glDrawBuffer(GL_NONE);
-            glReadBuffer(GL_NONE);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-    
-    std::vector<glm::vec4> Scene::getFrustumCornersWorldSpace_(const glm::mat4& projection, const glm::mat4& view)
-    {
-        glm::mat4 inverse = glm::inverse(projection * view);
-        
-        std::vector<glm::vec4> frustumCorners;
-        for (uint32 x = 0; x < 2; ++x)
-        {
-            for (uint32 y = 0; y < 2; ++y)
-            {
-                for (uint32 z = 0; z < 2; ++z)
-                {
-                    const glm::vec4 pt = inverse * glm::vec4(
-                        2.0f * x - 1.0f,
-                        2.0f * y - 1.0f,
-                        2.0f * z - 1.0f,
-                        1.0f
-                    );
-                    frustumCorners.push_back(pt / pt.w);
-                }
-            }
-        }
-        
-        return frustumCorners;
-    }
-
-    glm::mat4 Scene::getLightSpaceMatrix_(float nearPlane, float farPlane, glm::mat4 cameraView)
-    {
-        glm::mat4 projection = glm::perspective(
-            utils::CAMERA_FOV, 
-            utils::CAMERA_ASPECT_RATIO, 
-            nearPlane,
-            farPlane
-        );
-
-        std::vector<glm::vec4> corners = getFrustumCornersWorldSpace_(
-            projection, 
-            cameraView
-        );
-
-        glm::vec3 center = glm::vec3(0.0, 0.0, 0.0);
-        for (const auto& corner : corners)
-            center += glm::vec3(corner);
-        center /= corners.size();
-
-        const auto lightView = glm::lookAt(
-            center + utils::SUN_DIRECTION, 
-            center,
-            glm::vec3(0.0f, 1.0f, 0.0f)
-        );
-
-        float minX = std::numeric_limits<float>::max();
-        float maxX = std::numeric_limits<float>::min();
-        float minY = std::numeric_limits<float>::max();
-        float maxY = std::numeric_limits<float>::min();
-        float minZ = std::numeric_limits<float>::max();
-        float maxZ = std::numeric_limits<float>::min();
-
-        for (const auto& corner : corners)
-        {
-            const auto trf = lightView * corner;
-            minX = std::min(minX, trf.x);
-            maxX = std::max(maxX, trf.x);
-            minY = std::min(minY, trf.y);
-            maxY = std::max(maxY, trf.y);
-            minZ = std::min(minZ, trf.z);
-            maxZ = std::max(maxZ, trf.z);
-        }
-
-        constexpr float zMult = 2.0f;
-        if (minZ < 0)
-            minZ *= zMult;
-        else
-            minZ /= zMult;
-        if (maxZ < 0)
-            maxZ /= zMult;
-        else
-            maxZ *= zMult;
-
-        const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
-
-        return lightProjection * lightView;
-    }
-
-    std::vector<glm::mat4> Scene::getLightSpaceMatrices_(glm::mat4 cameraView)
-    {
-        std::vector<glm::mat4> matrices;
-
-        for (size_t i = 0; i < shadowCascadeLevels_.size() + 1; ++i)
-        {
-            if (i == 0)
-                matrices.push_back(getLightSpaceMatrix_(utils::CAMERA_NEAR_PLANE, shadowCascadeLevels_[i], cameraView));
-            else if (i < shadowCascadeLevels_.size())
-                matrices.push_back(getLightSpaceMatrix_(shadowCascadeLevels_[i - 1], shadowCascadeLevels_[i], cameraView));
-            else
-                matrices.push_back(getLightSpaceMatrix_(shadowCascadeLevels_[i - 1], utils::CAMERA_FAR_PLANE, cameraView));
-        }
-
-        return matrices;
     }
 }

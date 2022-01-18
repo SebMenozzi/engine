@@ -1,13 +1,7 @@
 #version 410 core
 
-uniform mat4 view;
-uniform sampler2DArray depthMapsTexture;
+uniform vec3 cameraPosition;
 uniform vec3 sunDirection;
-uniform float farPlane;
-
-uniform mat4 lightSpaceMatrices[16];
-uniform float cascadePlaneDistances[16];
-uniform int cascadeCount;
 
 // Inputs from Vertex shader
 in vec3 position;
@@ -16,74 +10,43 @@ in vec3 normal;
 // Output
 out vec4 color;
 
-float near = 0.1;
-float far = 10.0;
+const vec3 WATER_LIGHTEST = vec3(0.1294, 0.1608, 0.6078);
+const vec3 WATER_DARKEST = vec3(0.0039, 0.1294, 0.3647);
+const vec3 SKY_COLOR = vec3(0.09, 0.33, 0.81);
 
-float linear(float value, float min, float max)
+float fresnel(float F0)
 {
-    return (min * max) / (max + min - value * (max - min));
+    float cosTheta = dot(normal, normalize(cameraPosition - position));
+    
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-float shadowCalculation(vec3 position)
+vec3 sky(vec3 e)
 {
-    vec4 positionViewSpace = view * vec4(position, 1.0);
-    float depthValue = abs(positionViewSpace.z);
-
-    int layer = -1;
-    for (int i = 0; i < cascadeCount; ++i)
-    {
-        if (depthValue < cascadePlaneDistances[i])
-        {
-            layer = i;
-            break;
-        }
-    }
-    if (layer == -1)
-        layer = 0;
-
-    vec4 positionLightSpace = lightSpaceMatrices[layer] * vec4(position, 1.0);
-    vec3 coords = positionLightSpace.xyz / positionLightSpace.w;
-    coords = coords * 0.5 + 0.5;
-
-    if (coords.z > 1.0)
-        return 0.0;
-
-    float bias = max(0.05 * (1.0 - dot(normal, sunDirection)), 0.005);
-    if (layer == cascadeCount)
-        bias *= 1 / (farPlane * 0.5f);
-    else
-        bias *= 1 / (cascadePlaneDistances[layer] * 0.5f);
-
-    // PCF
-    float shadow = 0.0;
-    vec2 texelSize = 1.0 / vec2(textureSize(depthMapsTexture, 0));
-
-    for (int x = -4; x <= 4; ++x)
-    {
-        for (int y = -4; y <= 4; ++y)
-        {
-            float closestDepth = texture(depthMapsTexture, vec3(coords.xy + vec2(x, y) * texelSize, layer)).r;
-            shadow += (coords.z - bias) > closestDepth ? 0.01 : 0.0; 
-        }
-    }
-        
-    return shadow;
+    return mix(
+        vec3(0.451, 0.6157, 0.8), 
+        mix(SKY_COLOR, 0.5 * SKY_COLOR, e.y), 
+        smoothstep(-0.5, 0.25, e.y)
+    );
 }
 
 void main()
 {
+    float lightValue = dot(sunDirection, normal);
 
-    float heightDepthValue = position.y / 0.5;
-    vec3 heightDepthColor = vec3(heightDepthValue);
+    vec3 oceanColor = vec3(0.0549, 0.1255, 0.5255);
+    
+    vec3 finalColor = oceanColor * (lightValue * 0.2 + 0.5);
 
-    float fogValue = 1.0 - 2.0 * linear(gl_FragCoord.z * 2.0 - 1.0, near, far) / far;
+    float fresnelValue = clamp(fresnel(0.02), 0.0, 1.0) * 0.2; // 0.02 => Water
 
-    vec3 oceanColor = mix(vec3(0.5725, 0.7137, 1.0) * 0.5, vec3(0.0549, 0.1255, 0.5255), fogValue);
-    oceanColor = mix(heightDepthColor, oceanColor, 0.5);
+    vec3 reflected = sky(
+        reflect(cameraPosition, normal)) * 0.5 + 5.0 * pow(max(dot(cameraPosition, reflect(normal, sunDirection)), 0.1
+    ), 1.0);
 
-    float shadow = clamp(shadowCalculation(position), 0.0, 0.4);
+    // indirect light from the sun through water
+    vec3 refracted = WATER_DARKEST +  WATER_LIGHTEST * pow(0.4 * lightValue + 0.6, 1.0) * 0.1;
+    refracted += WATER_LIGHTEST * 0.2 * (position.y - 1.0);
 
-    vec3 oceanColorWithShadow = (1.0 - shadow) * oceanColor;
-
-    color = vec4(oceanColorWithShadow, 1.0);
+    color = vec4(mix(refracted, reflected, fresnelValue), 1.0);
 }

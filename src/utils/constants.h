@@ -13,18 +13,15 @@ namespace utils
     // Sun
     const glm::vec3 SUN_DIRECTION = glm::normalize(glm::vec3(1.0f, 0.3f, 1.0f));
 
-    // Depth Map
-    const float DEPTH_MAP_RESOLUTION = 8192;
-
     // Terrain
-    const float TERRAIN_MIN_HEIGHT = -0.51;
+    const float TERRAIN_MIN_HEIGHT = 0.0;
     const float TERRAIN_SIZE = 600;
     const float TERRAIN_SCALE = 0.01;
     const float TERRAIN_GRASS_MIN_HEIGHT = 0.05;
     const float TERRAIN_DISPLACEMENT_SCALE = 1.2;
 
     // Ocean
-    const float OCEAN_SIZE = 64.0;
-    const float OCEAN_HEIGHT = 0.05;
-    const float OCEAN_SCALE = 0.1;
+    const float OCEAN_SIZE = 200;
+    const float OCEAN_HEIGHT = 0.1;
+    const float OCEAN_SCALE = 0.02;
 }

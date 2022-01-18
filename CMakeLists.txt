@@ -37,8 +37,6 @@ set(SRC_CPP
   src/object/skybox/skybox.cpp
   src/object/sphere/uv_sphere.cpp
   src/object/heightmap/heightmap.cpp
-  src/object/heightmap/terrain/terrain.cpp
-  src/object/heightmap/ocean/ocean.cpp
   src/object/model/assimp_model.cpp
   src/object/model/tiny_gltf_model.cpp
   src/object/mesh.cpp

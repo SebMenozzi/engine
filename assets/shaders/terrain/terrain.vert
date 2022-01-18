@@ -8,11 +8,10 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-uniform sampler2D terrainTexture;
-
 uniform float size;
 uniform float scale;
 uniform float displacementScale;
+uniform sampler2D terrainTexture;
 
 out vec3 position;
 out vec3 normal;

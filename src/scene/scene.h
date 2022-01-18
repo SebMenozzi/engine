@@ -32,8 +32,7 @@
 #include "plane.h"
 #include "skybox.h"
 #include "uv_sphere.h"
-#include "terrain.h"
-#include "ocean.h"
+#include "heightmap.h"
 #include "assimp_model.h"
 #include "tiny_gltf_model.h"
 #include "object.h"
@@ -57,7 +56,6 @@ namespace scene
         shader::Shader* oceanShader_;
         shader::Shader* normalShader_;
         shader::Shader* materialShader_;
-        shader::Shader* depthShader_;
         shader::Shader* sandShader_;
 
         // Textures
@@ -71,21 +69,14 @@ namespace scene
         // Objects
         object::Skybox* skybox_;
         object::UVSphere* moon_;
-        object::Cube* cube_;
-        object::Terrain* terrain_;
         object::Plane* sand_;
-        object::Ocean* ocean_;
-        object::AssimpModel* titanic_;
+        object::Heightmap* terrain_;
+        object::Heightmap* ocean_;
         object::AssimpModel* shark_;
-
-        GLuint depthMapsFboID_;
-        GLuint depthMapsTextureID_;
-        std::vector<float> shadowCascadeLevels_;
 
         bool isWireframe_;
         bool isFullscreen_;
         bool displayNormals_;
-        bool shadowRendered_;
 
         bool init_();
         void loadShaders_();
@@ -94,12 +85,7 @@ namespace scene
         void loop_();
         void setCameraUniformsToShader_(shader::Shader* shader, glm::mat4 cameraView, glm::mat4 cameraProjection, glm::vec3 cameraPosition);
         void renderObject_(shader::Shader* shader, object::Object* object, glm::mat4 model);
-        void renderOcean_(bool displayNormals, bool useDepthShader);
-        void renderFog_();
-        void render_(bool displayNormals, bool useDepthShader);
-        void createDepthMapsTexture_();
-        std::vector<glm::vec4> getFrustumCornersWorldSpace_(const glm::mat4& projection, const glm::mat4& view);
-        glm::mat4 getLightSpaceMatrix_(float nearPlane, float farPlane, glm::mat4 cameraView);
-        std::vector<glm::mat4> getLightSpaceMatrices_(glm::mat4 cameraView);
+        void renderOcean_(bool displayNormals);
+        void render_(bool displayNormals);
     };
 }
