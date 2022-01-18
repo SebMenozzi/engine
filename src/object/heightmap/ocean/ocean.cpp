@@ -13,18 +13,19 @@ namespace object
         {
             for (size_t z = 0; z < size_; ++z)
             {
-                // 0
-                vertices->push_back(glm::vec3(x * scale_, 0, z * scale_));
-                // 1 
-                vertices->push_back(glm::vec3((x + 1) * scale_, 0, z * scale_));
                 // 2 
-                vertices->push_back(glm::vec3(x * scale_, 0, (z + 1) * scale_));
-                // 2
                 vertices->push_back(glm::vec3(x * scale_, 0, (z + 1) * scale_));
                 // 3
                 vertices->push_back(glm::vec3((x + 1) * scale_, 0, (z + 1) * scale_));
                 // 1 
                 vertices->push_back(glm::vec3((x + 1) * scale_, 0, z * scale_));
+
+                // 1 
+                vertices->push_back(glm::vec3((x + 1) * scale_, 0, z * scale_));
+                // 0
+                vertices->push_back(glm::vec3(x * scale_, 0, z * scale_));
+                // 2
+                vertices->push_back(glm::vec3(x * scale_, 0, (z + 1) * scale_));
             }
         }
 

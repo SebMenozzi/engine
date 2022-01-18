@@ -14,7 +14,7 @@ namespace utils
     const glm::vec3 SUN_DIRECTION = glm::normalize(glm::vec3(1.0f, 0.3f, 1.0f));
 
     // Depth Map
-    const float DEPTH_MAP_RESOLUTION = 4096;
+    const float DEPTH_MAP_RESOLUTION = 8192;
 
     // Terrain
     const float TERRAIN_MIN_HEIGHT = -0.51;

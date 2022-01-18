@@ -84,6 +84,7 @@ namespace scene
         bool isWireframe_;
         bool isFullscreen_;
         bool displayNormals_;
+        bool shadowRendered_;
 
         bool init_();
         void loadShaders_();

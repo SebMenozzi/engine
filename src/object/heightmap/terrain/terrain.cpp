@@ -51,7 +51,7 @@ namespace object
         }
 
         size_ = heights_.size();
-
+     
         auto vertices = new std::vector<glm::vec3>();
         auto normals = new std::vector<glm::vec3>();
 
@@ -67,8 +67,6 @@ namespace object
 
         vertices_ = Buffer { reinterpret_cast<const uint8*>(vertices->data()), sizeof(glm::vec3), vertices->size() };
         normals_ = Buffer { reinterpret_cast<const uint8*>(normals->data()), sizeof(glm::vec3), normals->size() };
-
-        computeNormals_(64.0f);
     }
 
     void Terrain::addVertices_(std::vector<glm::vec3>* vertices, float x, float z)
@@ -78,22 +76,7 @@ namespace object
         float h2 = getHeight(x, z + 1);
         float h3 = getHeight(x + 1, z + 1);
 
-        // 0
-        vertices->push_back(
-            glm::vec3(x * scale_, h0, z * scale_)
-        );
-
-        // 1 
-        vertices->push_back(
-            glm::vec3((x + 1) * scale_, h1, z * scale_)
-        );
-
         // 2 
-        vertices->push_back(
-            glm::vec3(x * scale_, h2, (z + 1) * scale_)
-        );
-
-        // 2
         vertices->push_back(
             glm::vec3(x * scale_, h2, (z + 1) * scale_)
         );
@@ -107,6 +90,21 @@ namespace object
         vertices->push_back(
             glm::vec3((x + 1) * scale_, h1, z * scale_)
         );
+
+        // 1 
+        vertices->push_back(
+            glm::vec3((x + 1) * scale_, h1, z * scale_)
+        );
+
+        // 0
+        vertices->push_back(
+            glm::vec3(x * scale_, h0, z * scale_)
+        );
+
+        // 2
+        vertices->push_back(
+            glm::vec3(x * scale_, h2, (z + 1) * scale_)
+        );
     }
 
     glm::vec3 Terrain::computeNormal_(float x, float z)
@@ -116,7 +114,7 @@ namespace object
         float hd = getHeight(x, z + 1);
         float hu = getHeight(x, z - 1);
 
-        glm::vec3 n = glm::vec3(hl - hr, 1.0f, hd - hu);
+        glm::vec3 n = glm::vec3(hd - hu, 1.0f, hl - hr);
 
         return glm::normalize(n);
     }
